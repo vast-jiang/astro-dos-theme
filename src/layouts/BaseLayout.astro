@@ -1,0 +1,18 @@
+---
+import '../styles/global.css';
+const { title = "SYSTEM" } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} | DOS_SHELL</title>
+    <!-- 👇 新增：引入不蒜子计数服务脚本 (异步加载，不影响速度) -->
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  </head>
+  <body class="crt min-h-screen flex flex-col p-4 md:p-8 max-w-5xl mx-auto selection:bg-dos-primary selection:text-black">
+    <slot />
+  </body>
+</html>

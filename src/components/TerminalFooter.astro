@@ -1,0 +1,29 @@
+---
+const year = new Date().getFullYear();
+---
+<footer class="mt-20 border-t border-dos-dim pt-6 pb-10 text-center relative overflow-hidden">
+  
+  <!-- 滚动的背景字装饰 -->
+  <div class="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none select-none flex justify-center items-center overflow-hidden">
+    <span class="text-[10rem] font-bold whitespace-nowrap animate-pulse">SYSTEM END</span>
+  </div>
+
+  <div class="relative z-10 flex flex-col items-center gap-4">
+    <!-- 系统状态指示灯 -->
+    <div class="flex gap-4 text-xs font-mono text-dos-dim border border-dos-dim px-4 py-1 rounded-full bg-black">
+      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-dos-primary animate-pulse"></span> CPU: 3%</span>
+      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-dos-primary"></span> RAM: 64KB</span>
+      <span class="flex items-center gap-1">TEMP: NORMAL</span>
+    </div>
+
+    <p class="text-sm opacity-60">
+      &copy; {year} VAST_JIANG. All rights reserved. <br>
+      Built with Astro & Tailwind. Hosted on Cloudflare Pages.
+    </p>
+
+    <!-- 关机按钮 (装饰用) -->
+    <button onclick="alert('系统无法关闭。你永远无法离开赛博空间。')" class="text-xs border border-dos-alert text-dos-alert px-2 py-1 hover:bg-dos-alert hover:text-black transition uppercase">
+      [ 强制关机 ]
+    </button>
+  </div>
+</footer>

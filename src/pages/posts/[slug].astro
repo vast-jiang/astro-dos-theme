@@ -1,0 +1,48 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+// 1. 静态生成路径 (SSG)
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map(entry => ({
+    params: { slug: entry.slug }, props: { entry },
+  }));
+}
+
+// 2. 获取文章内容
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+---
+
+<BaseLayout title={entry.data.title}>
+  <!-- 顶部导航 -->
+  <div class="mb-6">
+    <a href="/" class="no-underline hover:bg-dos-primary hover:text-black px-1">
+      &lt; CD .. (BACK)
+    </a>
+  </div>
+
+  <article class="max-w-none">
+    <!-- 文章头部 -->
+    <header class="border-b-2 border-dos-primary mb-8 pb-4">
+      <h1 class="text-3xl md:text-4xl font-bold uppercase mb-2">{entry.data.title}</h1>
+      <div class="text-sm text-dos-dim font-mono">
+        CREATED_AT: {entry.data.date.toISOString().split('T')[0]} <br>
+        SIZE: {entry.body.length} BYTES <br>
+        STATUS: READ_ONLY
+      </div>
+    </header>
+
+    <!-- 正文内容 (使用 Typography 插件美化 Markdown) -->
+    <!-- prose-p:text-dos-primary 强制让正文也是绿色 -->
+    <div class="prose prose-invert prose-p:text-dos-primary prose-headings:text-dos-primary prose-a:text-dos-primary prose-strong:text-dos-primary prose-code:text-dos-primary prose-blockquote:border-dos-primary hover:prose-a:bg-dos-primary hover:prose-a:text-black max-w-none">
+      <Content />
+    </div>
+  </article>
+
+  <!-- 页脚 -->
+  <footer class="mt-12 pt-8 border-t border-dos-dim text-center text-dos-dim text-sm">
+    *** END OF FILE ***
+  </footer>
+</BaseLayout>

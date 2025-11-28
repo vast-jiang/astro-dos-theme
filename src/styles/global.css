@@ -1,0 +1,54 @@
+/* src/styles/global.css */
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+@theme {
+  --color-dos-bg: #050505;
+  --color-dos-primary: #33ff00;
+  --color-dos-dim: #005f00;
+  --color-dos-alert: #ff3300;
+  --font-mono: "VT323", monospace;
+
+  /* 定义基础动画 */
+  --animate-scan: scan 4s linear infinite;
+  --animate-glitch: glitch 3s infinite alternate;
+  
+  @keyframes scan {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 0% 100%; }
+  }
+}
+
+@layer base {
+  body {
+    background-color: var(--color-dos-bg);
+    color: var(--color-dos-primary);
+    font-family: var(--font-mono);
+    font-size: 1.25rem;
+    overflow-x: hidden;
+    text-shadow: 0 0 4px rgba(51, 255, 0, 0.4); 
+  }
+  /* ...原有滚动条和链接样式保持不变... */
+}
+
+@layer utilities {
+  /* 随机闪烁工具类：通过 CSS 变量控制延迟，实现“不跟随” */
+  .animate-flash-random {
+    animation: flash 0.2s steps(2) infinite;
+    animation-play-state: paused; /* 默认暂停，通过 JS 随机触发 */
+  }
+  
+  .glass-panel {
+    background: rgba(0, 15, 0, 0.7);
+    backdrop-filter: blur(4px);
+    border: 1px solid var(--color-dos-dim);
+    box-shadow: 0 0 10px rgba(51, 255, 0, 0.05);
+  }
+}
+
+@keyframes flash {
+  0% { opacity: 1; filter: brightness(1); }
+  50% { opacity: 0.3; filter: brightness(2); text-shadow: 0 0 20px var(--color-dos-primary); }
+  100% { opacity: 1; filter: brightness(1); }
+}

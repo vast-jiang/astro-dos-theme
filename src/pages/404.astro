@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="ERROR">
+  <div class="h-[80vh] flex flex-col justify-center items-center text-center">
+    <h1 class="text-6xl font-bold mb-4 bg-dos-primary text-black px-4">ERROR 404</h1>
+    <p class="text-xl mb-8">Bad command or file name</p>
+    
+    <div class="border border-dos-primary p-4 max-w-md text-left">
+      <p>The system cannot find the file specified.</p>
+      <br>
+      <p>Possible causes:</p>
+      <ul class="list-disc ml-5 text-dos-dim">
+        <li>File deleted</li>
+        <li>Typing error</li>
+        <li>Disk error</li>
+      </ul>
+    </div>
+
+    <a href="/" class="mt-8 uppercase px-4 py-2 border border-dos-primary hover:bg-dos-primary hover:text-black transition">
+      [ REBOOT SYSTEM ]
+    </a>
+  </div>
+</BaseLayout>

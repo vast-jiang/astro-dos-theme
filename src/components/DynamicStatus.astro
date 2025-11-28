@@ -1,0 +1,56 @@
+---
+// src/components/DynamicStatus.astro
+---
+
+<div class="relative border-l-2 border-dos-primary pl-4 py-2 space-y-1 font-mono text-sm md:text-base">
+  <!-- 装饰线 -->
+  <div class="absolute top-0 left-0 w-2 h-0.5 bg-dos-primary"></div>
+  <div class="absolute bottom-0 left-0 w-2 h-0.5 bg-dos-primary"></div>
+
+  <!-- 每一行都带有随机闪烁类 -->
+  <div class="glitch-text text-dos-primary font-bold">
+    <span class="inline-block w-20 text-dos-dim">STATUS:</span> 
+    <span class="random-flash">SYSTEM_ONLINE</span>
+  </div>
+  
+  <div class="glitch-text text-dos-primary">
+    <span class="inline-block w-20 text-dos-dim">LOC:</span> 
+    <span id="scramble-loc">CN_SHANGHAI_SECTOR_7</span>
+  </div>
+
+  <div class="glitch-text text-dos-primary">
+    <span class="inline-block w-20 text-dos-dim">TASK:</span> 
+    <span class="random-flash">CODING / DEPLOYING</span>
+  </div>
+
+  <div class="glitch-text text-dos-primary">
+     <span class="inline-block w-20 text-dos-dim">MOOD:</span>
+     <!-- 动态条形图 -->
+     <span class="inline-flex gap-0.5 items-end h-3">
+        <span class="w-1 h-3 bg-dos-primary animate-[pulse_0.5s_infinite]"></span>
+        <span class="w-1 h-2 bg-dos-primary animate-[pulse_0.7s_infinite]"></span>
+        <span class="w-1 h-4 bg-dos-primary animate-[pulse_0.3s_infinite]"></span>
+        <span class="w-1 h-2 bg-dos-primary animate-[pulse_0.9s_infinite]"></span>
+        <span class="w-1 h-1 bg-dos-dim"></span>
+     </span>
+  </div>
+</div>
+
+<script>
+  // 随机闪烁逻辑：遍历所有 .random-flash 元素，随机触发 CSS 动画
+  const flashElements = document.querySelectorAll('.random-flash');
+  
+  flashElements.forEach((el) => {
+    setInterval(() => {
+      // 30% 的概率触发一次闪烁
+      if(Math.random() > 0.7) {
+        (el as HTMLElement).style.opacity = '0.5';
+        (el as HTMLElement).style.textShadow = '0 0 10px #33ff00';
+        setTimeout(() => {
+            (el as HTMLElement).style.opacity = '1';
+            (el as HTMLElement).style.textShadow = 'none';
+        }, 100);
+      }
+    }, 500 + Math.random() * 1000); // 随机间隔
+  });
+</script>
