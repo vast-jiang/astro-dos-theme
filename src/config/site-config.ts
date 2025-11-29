@@ -78,3 +78,19 @@ export const PROJECTS: ProjectItem[] = [
     link: "https://pibt.cpolar.cn/down/O9vMnOrL9MLr.exe",
   },
 ];
+
+
+
+// src/config/site-config.ts (追加在文件末尾)
+
+// ... (上方原有的 SITE_CONFIG, SOCIAL_LINKS 等保持不变) ...
+
+// Giscus 评论配置 (已填入你的真实数据)
+export const GISCUS_CONFIG = {
+  repo: "vast-jiang/astro-dos-theme",
+  repoId: "R_kgDOQeuWZg",
+  category: "Announcements",
+  categoryId: "DIC_kwDOQeuWZs4CzMLe",
+  theme: "transparent_dark", // 高对比度暗色，完美适配 DOS
+  lang: "zh-CN"
+} as const;

@@ -1,0 +1,108 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import TerminalHeader from "../../components/layout/TerminalHeader.astro";
+import TerminalFooter from "../../components/layout/TerminalFooter.astro";
+
+// 1. 生成所有标签的静态路径
+export async function getStaticPaths() {
+  const allPosts = await getCollection("blog", ({ data }) => !data.draft);
+
+  // 提取唯一标签 (修复 TS 类型问题)
+  const rawTags = allPosts.flatMap((post) => post.data.tags || []);
+  const uniqueTags = [
+    ...new Set(rawTags.filter((tag): tag is string => typeof tag === "string")),
+  ];
+
+  // 为每个标签生成页面
+  return uniqueTags.map((tag) => {
+    // 过滤文章时，安全处理 tags 为 undefined 的情况
+    const filteredPosts = allPosts.filter(
+      (post) => post.data.tags?.includes(tag) ?? false
+    );
+    return {
+      params: { tag },
+      props: { posts: filteredPosts },
+    };
+  });
+}
+
+const { tag } = Astro.params;
+const { posts } = Astro.props;
+
+// 按日期排序
+const sortedPosts = posts.sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+---
+
+<BaseLayout title={`TAG: ${tag}`}>
+  <TerminalHeader />
+
+  <main class="max-w-4xl mx-auto min-h-[60vh]">
+    <!-- 头部面包屑 -->
+    <div
+      class="mb-8 border-b-2 border-dos-dim pb-2 flex justify-between items-end"
+    >
+      <div class="flex items-center gap-2">
+        <a
+          href="/tags"
+          class="text-dos-dim hover:text-dos-primary transition no-underline text-sm"
+          >[INDEX]</a
+        >
+        <span class="text-dos-dim">/</span>
+        <h2 class="text-2xl font-bold uppercase text-dos-primary">
+          FILTER: "{tag}"
+        </h2>
+      </div>
+      <span class="text-xs text-dos-dim">{posts.length} RECORDS FOUND</span>
+    </div>
+
+    <!-- 文章列表 -->
+    <div class="space-y-4">
+      {
+        sortedPosts.map((post) => (
+          <a
+            href={`/posts/${post.slug}`}
+            class="block glass-panel p-6 group hover:border-dos-primary transition-all duration-300 no-underline relative overflow-hidden"
+          >
+            <div class="absolute inset-0 bg-dos-primary/5 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500 skew-x-12 pointer-events-none" />
+
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <h3 class="text-xl font-bold text-white group-hover:text-dos-primary transition flex items-center gap-2">
+                  <span class="opacity-0 group-hover:opacity-100 transition-opacity text-sm">
+                    >
+                  </span>
+                  {post.data.title}
+                </h3>
+                <p class="text-sm text-dos-dim mt-2 font-mono line-clamp-1">
+                  {post.data.description}
+                </p>
+              </div>
+
+              <div class="flex flex-col items-end gap-1 text-xs font-mono text-dos-dim min-w-fit">
+                <span>{post.data.date.toISOString().split("T")[0]}</span>
+                <span class="border border-dos-dim px-1 rounded bg-black/50">
+                  FILE_ID: {post.slug.slice(0, 6)}
+                </span>
+              </div>
+            </div>
+          </a>
+        ))
+      }
+    </div>
+
+    <!-- 底部返回 -->
+    <div class="mt-8 text-center">
+      <a
+        href="/tags"
+        class="inline-block border border-dos-dim px-4 py-2 hover:bg-dos-primary hover:text-black transition uppercase font-mono text-sm"
+      >
+        &lt; RETURN_TO_INDEX
+      </a>
+    </div>
+  </main>
+
+  <TerminalFooter />
+</BaseLayout>

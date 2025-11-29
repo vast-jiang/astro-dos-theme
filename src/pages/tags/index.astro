@@ -1,0 +1,80 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TerminalHeader from '../../components/layout/TerminalHeader.astro';
+import TerminalFooter from '../../components/layout/TerminalFooter.astro';
+
+// 1. 获取所有非草稿文章
+const allPosts = await getCollection('blog', ({ data }) => {
+  return !data.draft;
+});
+
+// 2. 统计标签数量 (修复 TS 报错)
+// 使用 flatMap 处理可选数组，如果没有 tags 则返回空数组，避免 undefined
+const rawTags = allPosts.flatMap(post => post.data.tags || []);
+
+// 过滤掉可能存在的空值，并去重
+const tags = [...new Set(rawTags.filter((tag): tag is string => typeof tag === 'string'))];
+
+const tagCounts = tags.reduce((acc, tag) => {
+  // 统计每篇文章是否包含该 tag (使用 ?. 和 ?? false 处理 undefined 情况)
+  const count = allPosts.filter((post) => post.data.tags?.includes(tag) ?? false).length;
+  acc[tag] = count;
+  return acc;
+}, {} as Record<string, number>);
+
+const pageTitle = "TAG_INDEX";
+---
+
+<BaseLayout title={pageTitle}>
+  <TerminalHeader />
+  
+  <main class="max-w-4xl mx-auto min-h-[60vh]">
+    <div class="mb-8 border-b-2 border-dos-dim pb-2 flex justify-between items-end">
+      <h2 class="text-3xl font-bold flex items-center gap-2">
+        <span class="w-3 h-3 bg-dos-primary animate-pulse"></span>
+        DATABASE_INDEX
+      </h2>
+      <span class="text-xs text-dos-dim">/ETC/TAGS/</span>
+    </div>
+
+    <!-- 标签云面板 -->
+    <div class="glass-panel p-8">
+      <div class="text-xs text-dos-dim mb-6 font-mono">
+        > SCANNING_KEYWORDS... FOUND {tags.length} ENTRIES.
+      </div>
+
+      <div class="flex flex-wrap gap-4">
+        {tags.map((tag) => (
+          <a 
+            href={`/tags/${tag}`} 
+            class="group relative border border-dos-dim px-4 py-3 hover:bg-dos-primary hover:text-black transition-all duration-300 no-underline"
+          >
+            <!-- 装饰角标 -->
+            <div class="absolute top-0 right-0 w-1 h-1 bg-dos-primary opacity-0 group-hover:opacity-100 transition"></div>
+            <div class="absolute bottom-0 left-0 w-1 h-1 bg-dos-primary opacity-0 group-hover:opacity-100 transition"></div>
+            
+            <div class="flex items-center gap-3">
+              <span class="font-bold text-lg tracking-wider">{tag}</span>
+              <span class="text-xs bg-dos-dim/20 px-1.5 py-0.5 rounded group-hover:bg-black/20 group-hover:text-black">
+                {tagCounts[tag]}
+              </span>
+            </div>
+            
+            <div class="text-[9px] opacity-50 mt-1 font-mono group-hover:text-black">
+              DIR_ID: {Math.floor(Math.random() * 9999)}
+            </div>
+          </a>
+        ))}
+
+        {tags.length === 0 && (
+          <div class="text-dos-alert font-mono">
+            [ERROR] NO_TAGS_FOUND. Please add tags to your markdown files.
+          </div>
+        )}
+      </div>
+    </div>
+  </main>
+
+  <TerminalFooter />
+</BaseLayout>

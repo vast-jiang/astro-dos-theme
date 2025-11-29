@@ -1,0 +1,90 @@
+---
+import { GISCUS_CONFIG } from "../../config/site-config";
+---
+
+<div class="glass-panel p-6 mt-16 relative group">
+  <!-- 装饰性标题栏 -->
+  <div
+    class="absolute -top-3 left-4 bg-black px-2 text-dos-primary text-xs font-bold border border-dos-dim flex items-center gap-2"
+  >
+    <span class="w-2 h-2 bg-dos-alert rounded-full animate-pulse"></span>
+    ENCRYPTED_CHANNEL
+  </div>
+
+  <!-- 连接状态模拟 -->
+  <div
+    class="mb-6 flex justify-between items-end border-b border-dos-dim/30 pb-2 text-xs font-mono text-dos-dim"
+  >
+    <span>PROTOCOL: GITHUB_DISCUSSIONS</span>
+    <span class="text-dos-primary">STATUS: LISTENING...</span>
+  </div>
+
+  <!-- Giscus 挂载点 -->
+  <div id="comments-container" class="min-h-[150px]">
+    <!-- 加载前显示的动画 -->
+    <div
+      class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none -z-10 text-dos-dim/20 font-mono"
+    >
+      <span class="animate-spin text-2xl mb-2">✣</span>
+      <span>ESTABLISHING_UPLINK...</span>
+    </div>
+  </div>
+</div>
+
+<script is:inline define:vars={{ config: GISCUS_CONFIG }}>
+  // 动态注入脚本
+  function loadGiscus() {
+    // 防止重复加载
+    if (document.querySelector(".giscus-frame")) return;
+
+    const script = document.createElement("script");
+    script.src = "https://giscus.app/client.js";
+
+    // 注入配置参数
+    script.setAttribute("data-repo", config.repo);
+    script.setAttribute("data-repo-id", config.repoId);
+    script.setAttribute("data-category", config.category);
+    script.setAttribute("data-category-id", config.categoryId);
+
+    // 固定参数
+    script.setAttribute("data-mapping", "pathname");
+    script.setAttribute("data-strict", "0");
+    script.setAttribute("data-reactions-enabled", "1");
+    script.setAttribute("data-emit-metadata", "0");
+    script.setAttribute("data-input-position", "top");
+    script.setAttribute("data-theme", config.theme);
+    script.setAttribute("data-lang", config.lang);
+    script.setAttribute("data-loading", "lazy");
+    script.crossOrigin = "anonymous";
+    script.async = true;
+
+    const container = document.getElementById("comments-container");
+    if (container) container.appendChild(script);
+  }
+
+  // 使用 IntersectionObserver 实现懒加载（当滚动到评论区时才加载，提高性能）
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        loadGiscus();
+        observer.disconnect(); // 加载一次后断开观察
+      }
+    });
+  });
+
+  const container = document.getElementById("comments-container");
+  if (container) observer.observe(container);
+</script>
+
+<style is:global>
+  /* 强制覆盖 Giscus iframe 样式以适应 DOS 风格 */
+  iframe.giscus-frame {
+    width: 100%;
+    border: none;
+    opacity: 0.8;
+    transition: opacity 0.3s;
+  }
+  iframe.giscus-frame:hover {
+    opacity: 1;
+  }
+</style>

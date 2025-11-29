@@ -1,48 +1,90 @@
 ---
-import { getCollection } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import TerminalHeader from "../../components/layout/TerminalHeader.astro";
+import TerminalFooter from "../../components/layout/TerminalFooter.astro";
+import CommentSystem from "../../components/dashboard/CommentSystem.astro";
 
-// 1. 静态生成路径 (SSG)
 export async function getStaticPaths() {
-  const posts = await getCollection('blog');
-  return posts.map(entry => ({
-    params: { slug: entry.slug }, props: { entry },
+  const posts = await getCollection("blog");
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
   }));
 }
 
-// 2. 获取文章内容
-const { entry } = Astro.props;
-const { Content } = await entry.render();
+const { post } = Astro.props;
+const { Content } = await render(post);
+const tags = post.data.tags || []; // 获取标签，防止 undefined
 ---
 
-<BaseLayout title={entry.data.title}>
-  <!-- 顶部导航 -->
-  <div class="mb-6">
-    <a href="/" class="no-underline hover:bg-dos-primary hover:text-black px-1">
-      &lt; CD .. (BACK)
-    </a>
-  </div>
+<BaseLayout title={post.data.title} description={post.data.description}>
+  <TerminalHeader />
 
-  <article class="max-w-none">
-    <!-- 文章头部 -->
-    <header class="border-b-2 border-dos-primary mb-8 pb-4">
-      <h1 class="text-3xl md:text-4xl font-bold uppercase mb-2">{entry.data.title}</h1>
-      <div class="text-sm text-dos-dim font-mono">
-        CREATED_AT: {entry.data.date.toISOString().split('T')[0]} <br>
-        SIZE: {entry.body.length} BYTES <br>
-        STATUS: READ_ONLY
+  <main class="max-w-4xl mx-auto min-h-screen relative">
+    <!-- 1. 文章顶部元数据区 -->
+    <div class="mb-8 border-b-2 border-dos-dim pb-4">
+      <div class="flex justify-between items-start mb-4">
+        <div
+          class="flex flex-wrap gap-4 text-xs font-mono text-dos-dim uppercase"
+        >
+          <span>LOG_ID: {post.slug}</span>
+          <span>DATE: {post.data.date.toISOString().split("T")[0]}</span>
+        </div>
+
+        <!-- 🏷️ 标签展示区 (新功能) -->
+        <div class="flex gap-2">
+          {
+            tags.map((tag) => (
+              <a
+                href={`/tags/${tag}`}
+                class="text-[10px] border border-dos-dim px-1.5 py-0.5 text-dos-dim hover:border-dos-primary hover:text-dos-primary hover:bg-dos-primary/10 transition no-underline"
+              >
+                #{tag}
+              </a>
+            ))
+          }
+        </div>
       </div>
-    </header>
 
-    <!-- 正文内容 (使用 Typography 插件美化 Markdown) -->
-    <!-- prose-p:text-dos-primary 强制让正文也是绿色 -->
-    <div class="prose prose-invert prose-p:text-dos-primary prose-headings:text-dos-primary prose-a:text-dos-primary prose-strong:text-dos-primary prose-code:text-dos-primary prose-blockquote:border-dos-primary hover:prose-a:bg-dos-primary hover:prose-a:text-black max-w-none">
-      <Content />
+      <h1
+        class="text-3xl md:text-5xl font-bold text-dos-primary mb-4 leading-tight"
+      >
+        {post.data.title}
+      </h1>
+      <p
+        class="text-xl text-dos-dim/80 font-serif italic border-l-4 border-dos-primary pl-4"
+      >
+        {post.data.description}
+      </p>
     </div>
-  </article>
 
-  <!-- 页脚 -->
-  <footer class="mt-12 pt-8 border-t border-dos-dim text-center text-dos-dim text-sm">
-    *** END OF FILE ***
-  </footer>
+    <!-- 2. 文章正文内容区 -->
+    <article
+      class="prose prose-invert prose-green max-w-none font-mono prose-headings:font-bold prose-headings:text-dos-primary prose-a:text-dos-primary prose-a:no-underline hover:prose-a:underline prose-code:text-dos-alert prose-pre:bg-black prose-pre:border prose-pre:border-dos-dim/50"
+    >
+      <Content />
+    </article>
+
+    <!-- 3. 底部导航与返回 -->
+    <div class="mt-16 border-t border-dos-dim pt-8 flex justify-between">
+      <a
+        href="/"
+        class="text-dos-dim hover:text-dos-primary transition no-underline"
+      >
+        &lt; RETURN_TO_ROOT
+      </a>
+      <button
+        onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+        class="text-dos-dim hover:text-dos-primary transition"
+      >
+        [ TOP ]
+      </button>
+    </div>
+
+    <!-- 4. 评论系统挂载点 -->
+    <CommentSystem />
+  </main>
+
+  <TerminalFooter />
 </BaseLayout>

@@ -1,18 +1,21 @@
 ---
-title: 'Welcome-To-My-Blog'
-description: '系统初始化完成，这是第一篇日志。'
-date: '2025-11-28'
+title: "Welcome-To-My-Blog"
+description: "系统初始化完成，这是第一篇日志。"
+date: 2025-11-28
+tags: ["SYSTEM", "INTRO"]
+draft: false
 ---
 
-# 系统启动成功
+## 系统初始化
 
-欢迎来到我的 **DOS 风格** 数字花园。这是一个基于 Astro 搭建的静态网站。
+> KERNEL LOADED...
 
-## 系统特性
+欢迎来到我的个人终端。这里是 **Astro DOS Cyberpunk** 主题的演示页面。
 
-1. **极速加载**: 纯静态 HTML。
-2. **复古设计**: 像素字体 + 纯CSS扫描线。
-3. **内容驱动**: 只需编写 Markdown 即可发布。
+### 功能检查
 
-```javascript
-console.log("Hello World");
+- [x] 样式渲染
+- [x] 字体加载
+- [x] 动画引擎
+
+你可以在 `src/content/blog` 目录下创建新的 `.md` 文件来发布文章。记得使用 `dosblog` 快捷指令生成头部信息。

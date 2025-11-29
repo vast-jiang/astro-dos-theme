@@ -1,5 +1,6 @@
 ---
-import { MUSIC_PLAYLIST } from "../../config/site-config";
+import { MUSIC_PLAYLIST, GISCUS_CONFIG } from "../../config/site-config";
+import { FILE_SYSTEM, INITIAL_PATH } from "../../config/terminal-fs";
 ---
 
 <!-- 1. 移动端折叠按钮 (保持不变) -->
@@ -89,7 +90,7 @@ import { MUSIC_PLAYLIST } from "../../config/site-config";
   </div>
 </div>
 
-<!-- 3. 全局终端窗口 (保持不变) -->
+<!-- 3. 全局终端窗口 -->
 <div
   id="global-terminal"
   class="fixed inset-0 z-[100] bg-black/80 hidden flex-col items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300"
@@ -101,9 +102,11 @@ import { MUSIC_PLAYLIST } from "../../config/site-config";
     <div
       class="bg-dos-primary text-black px-3 py-1 flex justify-between items-center font-bold text-sm select-none"
     >
-      <span class="flex items-center gap-2"
-        ><span class="w-2 h-2 bg-black animate-pulse"></span> ROOT@SYSTEM:~</span
-      >
+      <!-- 动态显示当前路径 -->
+      <span class="flex items-center gap-2">
+        <span class="w-2 h-2 bg-black animate-pulse"></span>
+        <span id="term-prompt-path">ROOT@SYSTEM:~</span>
+      </span>
       <button
         id="close-term"
         class="hover:bg-black hover:text-dos-primary px-2 transition">X</button
@@ -113,9 +116,9 @@ import { MUSIC_PLAYLIST } from "../../config/site-config";
       id="term-output"
       class="flex-1 p-4 overflow-y-auto font-mono text-sm space-y-1 text-dos-primary/90 scrollbar-hide"
     >
-      <div>> VAST_OS Kernel v5.0.1 Loaded.</div>
-      <div>> Audio Module: ONLINE</div>
-      <div>> Try typing 'game' to play a number guessing game.</div>
+      <div>> VAST_OS Kernel v3.0.0 Loaded.</div>
+      <div>> Type 'help' to see available commands.</div>
+      <div>> Try 'ls' to browse files.</div>
     </div>
     <div class="p-2 border-t border-dos-dim flex items-center gap-2 bg-black">
       <span class="text-dos-primary font-bold animate-pulse">></span>
@@ -129,15 +132,11 @@ import { MUSIC_PLAYLIST } from "../../config/site-config";
   </div>
 </div>
 
-<!-- 4. 背景动态特效 (核心优化区域) -->
+<!-- 4. 背景动态特效 (保持不变) -->
 <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden select-none">
-  <!-- 左侧：系统进程 (仅在大屏显示，位置居中) -->
-  <!-- 修改点: top-0 bottom-0 -> h-screen + items-center 实现垂直居中 -->
-  <!-- 修改点: opacity-30 提高可见度 -->
   <div
     class="absolute left-2 md:left-6 h-screen w-64 opacity-30 mix-blend-screen hidden lg:flex flex-col justify-center"
   >
-    <!-- 遮罩：中间清晰，上下渐隐 -->
     <div
       class="w-full h-[70vh] overflow-hidden relative"
       style="mask-image: linear-gradient(to bottom, transparent, black 20%, black 80%, transparent);"
@@ -146,15 +145,9 @@ import { MUSIC_PLAYLIST } from "../../config/site-config";
         id="proc-list"
         class="absolute inset-x-0 top-1/2 -translate-y-1/2 flex flex-col font-mono text-[10px] leading-relaxed text-dos-dim gap-1"
       >
-        <!-- JS 填充 -->
       </div>
     </div>
   </div>
-
-  <!-- 右侧：网络流量 (全平台显示，手机端做背景) -->
-  <!-- 修改点: hidden lg:flex -> flex (手机也显示) -->
-  <!-- 修改点: w-full (手机全宽) md:w-96 (PC限制宽度) -->
-  <!-- 修改点: 手机端 opacity-10 (不干扰阅读), PC端 opacity-30 -->
   <div
     class="absolute right-2 md:right-6 h-screen w-full md:w-96 flex flex-col justify-center items-end text-right opacity-10 md:opacity-30 mix-blend-screen"
   >
@@ -166,7 +159,6 @@ import { MUSIC_PLAYLIST } from "../../config/site-config";
         id="net-log"
         class="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col items-end font-mono text-[9px] md:text-[10px] leading-relaxed text-dos-dim gap-1 whitespace-pre pr-2 md:pr-0"
       >
-        <!-- JS 填充 -->
       </div>
     </div>
   </div>
@@ -174,10 +166,199 @@ import { MUSIC_PLAYLIST } from "../../config/site-config";
 
 <audio id="bg-music" preload="none"></audio>
 
-<script define:vars={{ playlistData: MUSIC_PLAYLIST }}>
+<!-- 注入配置数据 -->
+<script
+  define:vars={{
+    playlistData: MUSIC_PLAYLIST,
+    fsData: FILE_SYSTEM,
+    initPath: INITIAL_PATH,
+    giscusConfig: GISCUS_CONFIG,
+  }}
+>
+  // ==========================================
+  // 核心变量
+  // ==========================================
   const playlist = playlistData;
+  const fileSystem = fsData;
+  let currentPath = [...initPath]; // 当前路径栈 ['home', 'guest']
 
-  // --- 移动端切换 ---
+  // ==========================================
+  // CLI 2.0 文件系统逻辑
+  // ==========================================
+
+  // 获取当前目录对象
+  function getCurrentDir() {
+    let current = fileSystem.root;
+    for (const p of currentPath) {
+      if (current.children && current.children[p]) {
+        current = current.children[p];
+      } else {
+        return null; // 路径错误
+      }
+    }
+    return current;
+  }
+
+  // 格式化当前路径显示
+  function getPromptPath() {
+    return `ROOT@SYSTEM:/${currentPath.join("/")}`;
+  }
+
+  // 更新终端顶部的路径提示
+  function updatePrompt() {
+    const el = document.getElementById("term-prompt-path");
+    if (el) el.innerText = getPromptPath();
+  }
+
+  // 执行命令
+  function execCommand(input) {
+    const args = input.trim().split(/\s+/);
+    const cmd = args[0].toLowerCase();
+    const param = args[1];
+
+    if (cmd === "") return;
+
+    // 1. 基础系统命令
+    switch (cmd) {
+      case "help":
+        logToTerm(`AVAILABLE COMMANDS:`);
+        logToTerm(`  ls           List directory content`);
+        logToTerm(`  cd [dir]     Change directory (use .. for up)`);
+        logToTerm(`  cat [file]   Show file content`);
+        logToTerm(`  open [link]  Open link or page`);
+        logToTerm(`  clear        Clear terminal`);
+        logToTerm(`  whoami       Show user info`);
+        logToTerm(`  music        Toggle music player`);
+        logToTerm(`  game         Play number guessing game`);
+        logToTerm(`  theme        Switch UI theme`);
+        logToTerm(`  matrix       ???`);
+        return;
+
+      case "clear":
+        const output = document.getElementById("term-output");
+        if (output) output.innerHTML = "";
+        return;
+
+      case "whoami":
+        logToTerm(`USER: GUEST`);
+        logToTerm(`GROUP: VISITORS`);
+        logToTerm(`ID: ${Math.floor(Math.random() * 10000)}`);
+        return;
+
+      case "music":
+        togglePlay();
+        return;
+      case "theme":
+        document.getElementById("theme-btn")?.click();
+        return;
+      case "game":
+        startGame();
+        return;
+
+      case "matrix":
+        logToTerm("Wake up, Neo...");
+        document.body.style.fontFamily = "'Courier New', monospace";
+        document.body.style.filter =
+          "matrix(1, 0, 0, 1, 0, 0) hue-rotate(90deg) contrast(1.5)";
+        setTimeout(() => {
+          document.body.style.filter = "";
+        }, 5000);
+        return;
+    }
+
+    // 2. 文件系统命令
+    const currentDir = getCurrentDir();
+    if (!currentDir || currentDir.type !== "dir") {
+      logToTerm(`Error: File system corruption.`);
+      return;
+    }
+
+    switch (cmd) {
+      case "ls":
+      case "ll":
+        const files = Object.keys(currentDir.children).map((name) => {
+          const item = currentDir.children[name];
+          const typeMark =
+            item.type === "dir"
+              ? "/"
+              : item.type === "exe"
+                ? "*"
+                : item.type === "link"
+                  ? "@"
+                  : "";
+          const color =
+            item.type === "dir"
+              ? "text-dos-primary font-bold"
+              : item.type === "exe"
+                ? "text-dos-alert"
+                : "text-dos-dim";
+          return `<span class="${color}">${name}${typeMark}</span>`;
+        });
+        logToTerm(files.join("  "));
+        return;
+
+      case "cd":
+        if (!param) {
+          currentPath = ["home", "guest"]; // 回到首页
+        } else if (param === "..") {
+          if (currentPath.length > 0) currentPath.pop();
+        } else if (param === "/") {
+          currentPath = [];
+        } else {
+          // 检查目标目录是否存在
+          if (
+            currentDir.children[param] &&
+            currentDir.children[param].type === "dir"
+          ) {
+            currentPath.push(param);
+          } else {
+            logToTerm(`cd: ${param}: No such directory`);
+          }
+        }
+        updatePrompt();
+        return;
+
+      case "cat":
+        if (!param) {
+          logToTerm("Usage: cat [filename]");
+          return;
+        }
+        const file = currentDir.children[param];
+        if (file) {
+          if (file.type === "file") {
+            // 模拟打字效果
+            file.content.split("\n").forEach((line) => logToTerm(line));
+          } else {
+            logToTerm(`cat: ${param}: Not a text file`);
+          }
+        } else {
+          logToTerm(`cat: ${param}: No such file`);
+        }
+        return;
+
+      case "open":
+        if (!param) {
+          logToTerm("Usage: open [link_name]");
+          return;
+        }
+        const link = currentDir.children[param];
+        if (link && link.type === "link") {
+          logToTerm(`Opening ${param}...`);
+          window.location.href = link.target;
+        } else {
+          logToTerm(`open: ${param}: Not a link`);
+        }
+        return;
+
+      default:
+        logToTerm(`Unknown command: '${cmd}'`);
+    }
+  }
+
+  // ==========================================
+  // 下面是原有的 UI/Audio 逻辑 (保持兼容)
+  // ==========================================
+
   const mobileToggle = document.getElementById("mobile-toggle");
   const toolbar = document.getElementById("toolbar");
   let isToolbarVisible = false;
@@ -197,7 +378,6 @@ import { MUSIC_PLAYLIST } from "../../config/site-config";
     }
   });
 
-  // --- 音乐逻辑 ---
   const audio = document.getElementById("bg-music");
   const playBtn = document.getElementById("play-btn");
   const prevBtn = document.getElementById("prev-btn");
@@ -289,7 +469,7 @@ import { MUSIC_PLAYLIST } from "../../config/site-config";
   });
   loadTrack(0);
 
-  // --- 终端逻辑 ---
+  // --- 终端 UI 交互 ---
   const termOverlay = document.getElementById("global-terminal");
   const termWindow = document.getElementById("term-window");
   const termInput = document.getElementById("term-input");
@@ -307,6 +487,7 @@ import { MUSIC_PLAYLIST } from "../../config/site-config";
       termWindow.classList.remove("scale-95");
       termWindow.classList.add("scale-100");
       setTimeout(() => termInput?.focus(), 100);
+      updatePrompt(); // 打开时更新一次路径
     } else {
       termOverlay.classList.add("opacity-0");
       termWindow.classList.remove("scale-100");
@@ -321,12 +502,22 @@ import { MUSIC_PLAYLIST } from "../../config/site-config";
   function logToTerm(text, isCmd = false) {
     if (termOutput) {
       const div = document.createElement("div");
-      div.innerHTML = isCmd
-        ? `<span class="text-white opacity-50">> ${text}</span>`
-        : text;
+      if (isCmd) {
+        div.innerHTML = `<span class="text-white opacity-50">[${getPromptPath().split(":")[1]}] > ${text}</span>`;
+      } else {
+        div.innerHTML = text;
+      }
       termOutput.appendChild(div);
       termOutput.scrollTop = termOutput.scrollHeight;
     }
+  }
+
+  // 猜数字游戏逻辑
+  function startGame() {
+    targetNum = Math.floor(Math.random() * 100);
+    gameActive = true;
+    logToTerm("=== GUESS THE NUMBER (0-99) ===");
+    logToTerm('Game started! Enter a number or type "exit".');
   }
 
   document.addEventListener("keydown", (e) => {
@@ -342,17 +533,17 @@ import { MUSIC_PLAYLIST } from "../../config/site-config";
   termInput?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       const val = termInput.value.trim();
-      const cmd = val.toLowerCase();
-      logToTerm(val, true);
+      logToTerm(val, true); // Log input
       termInput.value = "";
 
+      // 游戏模式拦截
       if (gameActive) {
-        if (cmd === "exit") {
+        if (val.toLowerCase() === "exit") {
           gameActive = false;
           logToTerm("Game aborted.");
           return;
         }
-        const guess = parseInt(cmd);
+        const guess = parseInt(val);
         if (isNaN(guess)) {
           logToTerm("Please enter a number (0-99).");
         } else if (guess > targetNum) {
@@ -367,39 +558,12 @@ import { MUSIC_PLAYLIST } from "../../config/site-config";
         return;
       }
 
-      switch (cmd) {
-        case "help":
-          logToTerm("CMDS: help, clear, theme, music, game, reboot, whoami");
-          break;
-        case "clear":
-          if (termOutput) termOutput.innerHTML = "";
-          break;
-        case "theme":
-          document.getElementById("theme-btn")?.click();
-          break;
-        case "music":
-          togglePlay();
-          break;
-        case "reboot":
-          logToTerm("System rebooting...");
-          setTimeout(() => location.reload(), 1000);
-          break;
-        case "game":
-          targetNum = Math.floor(Math.random() * 100);
-          gameActive = true;
-          logToTerm("=== GUESS THE NUMBER (0-99) ===");
-          logToTerm('Game started! Enter a number or type "exit".');
-          break;
-        case "next":
-          nextTrack();
-          break;
-        default:
-          if (cmd !== "") logToTerm(`Unknown command: '${cmd}'.`);
-      }
+      // 执行系统命令
+      execCommand(val);
     }
   });
 
-  // 主题逻辑
+  // 主题 & 背景特效 (保持不变)
   const themes = [
     {
       name: "DOS_GREEN",
@@ -439,12 +603,8 @@ import { MUSIC_PLAYLIST } from "../../config/site-config";
     root.style.setProperty("--color-dos-bg", t.bg);
     root.style.setProperty("--color-dos-dim", t.dim);
     root.style.setProperty("--color-dos-alert", t.alert);
-    logToTerm(`Theme: ${t.name}`);
+    logToTerm(`Theme switched to: ${t.name}`);
   });
-
-  // ========================================================
-  // 🌟 背景日志生成逻辑
-  // ========================================================
 
   const procList = document.getElementById("proc-list");
   const netLog = document.getElementById("net-log");
@@ -475,13 +635,9 @@ import { MUSIC_PLAYLIST } from "../../config/site-config";
       .toUpperCase()}`;
   const pad = (str, len) => str.padEnd(len, " ");
 
-  // 1. 左侧：进程列表
   if (procList) {
-    // 初始多填一点，保证中间有内容
     for (let i = 0; i < 20; i++) addProcLine();
-    setInterval(() => {
-      addProcLine();
-    }, 400);
+    setInterval(addProcLine, 400);
   }
 
   function addProcLine() {
@@ -491,35 +647,17 @@ import { MUSIC_PLAYLIST } from "../../config/site-config";
     const cpu = (Math.random() * 20).toFixed(1);
     const cmd = SYSTEM_CMDS[Math.floor(Math.random() * SYSTEM_CMDS.length)];
     const virt = rndHex();
-
     const line = document.createElement("div");
-    // 随机透明度，增加闪烁感
     line.className = `flex gap-2 whitespace-nowrap ${Math.random() > 0.8 ? "opacity-100 text-dos-primary/80" : "opacity-60"}`;
-
-    line.innerHTML = `
-      <span class="w-8 text-dos-dim">${pid}</span>
-      <span class="w-10">${pad(user, 5)}</span>
-      <span class="w-10 text-dos-dim">${pad(virt, 6)}</span>
-      <span class="w-8">${pad(cpu, 4)}</span>
-      <span class="flex-1 truncate">${cmd}</span>
-    `;
-
-    // 插入到开头，产生向下滚动的效果，或者 appendChild 向上滚动
-    // 为了配合居中 masked view，appendChild (向上顶) 效果通常更好
+    line.innerHTML = `<span class="w-8 text-dos-dim">${pid}</span><span class="w-10">${pad(user, 5)}</span><span class="w-10 text-dos-dim">${pad(virt, 6)}</span><span class="w-8">${pad(cpu, 4)}</span><span class="flex-1 truncate">${cmd}</span>`;
     procList.appendChild(line);
-
-    // 保持 DOM 数量在 25 行左右，视觉填满 70vh
-    if (procList.children.length > 25) {
+    if (procList.children.length > 25)
       procList.removeChild(procList.children[0]);
-    }
   }
 
-  // 2. 右侧：网络日志
   if (netLog) {
     for (let i = 0; i < 20; i++) addNetLine();
-    setInterval(() => {
-      addNetLine();
-    }, 300); // 速度稍快
+    setInterval(addNetLine, 300);
   }
 
   function addNetLine() {
@@ -529,25 +667,15 @@ import { MUSIC_PLAYLIST } from "../../config/site-config";
     const ip = rndIP();
     const port = [80, 443, 22, 3000][Math.floor(Math.random() * 4)];
     const proto = NET_PROTO[Math.floor(Math.random() * NET_PROTO.length)];
-    const isWarn = Math.random() > 0.95; // 5% 概率出现警告
+    const isWarn = Math.random() > 0.95;
     const status = isWarn
       ? "BLOCKED"
       : NET_STATUS[Math.floor(Math.random() * NET_STATUS.length)];
     const color = isWarn ? "text-dos-alert font-bold" : "text-dos-dim";
-
     const line = document.createElement("div");
     line.className = `flex justify-end gap-2 w-full whitespace-nowrap ${Math.random() > 0.9 ? "opacity-100" : "opacity-70"}`;
-    line.innerHTML = `
-      <span class="text-dos-dim/40">[${time}]</span>
-      <span>${ip}:${port}</span>
-      <span class="text-dos-dim/60 w-8 text-center">${proto}</span>
-      <span class="${color} w-20 text-right">${status}</span>
-    `;
-
+    line.innerHTML = `<span class="text-dos-dim/40">[${time}]</span><span>${ip}:${port}</span><span class="text-dos-dim/60 w-8 text-center">${proto}</span><span class="${color} w-20 text-right">${status}</span>`;
     netLog.appendChild(line);
-
-    if (netLog.children.length > 25) {
-      netLog.removeChild(netLog.children[0]);
-    }
+    if (netLog.children.length > 25) netLog.removeChild(netLog.children[0]);
   }
 </script>
