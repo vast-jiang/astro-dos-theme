@@ -3,10 +3,8 @@
 ---
 
 <!-- 
-  修复重点：
-  1. 移除 mix-blend-screen
-  2. 强制 min-height
-  3. 加一个边框 border 用来调试区域范围
+  Hologram Component
+  v3.1.1 - 修复材质为全息线框风格 (Wireframe + Phong + Lights)
 -->
 <div
   id="hologram-wrapper"
@@ -34,7 +32,7 @@
   import * as THREE from "three";
 
   function initHologram() {
-    console.log("🚀 Hologram: Starting init...");
+    console.log("🚀 Hologram: Starting init (v3.1.1 Wireframe Mode)...");
 
     const container = document.getElementById("hologram-container");
     if (!container) {
@@ -42,24 +40,21 @@
       return;
     }
 
-    // 清理旧场景
+    // 清理旧场景 (防止 View Transitions 导致重复 canvas)
     while (container.firstChild) {
       container.removeChild(container.firstChild);
     }
 
-    // 获取尺寸，如果为0则强制给一个值
+    // 获取尺寸
     let width = container.clientWidth || 300;
     let height = container.clientHeight || 350;
-    console.log(`📏 Hologram Size: ${width}x${height}`);
 
     // --- 1. 场景 ---
     const scene = new THREE.Scene();
-    // 移除雾效，防止看不清
-    // scene.fog = new THREE.FogExp2(0x000000, 0.002);
 
     // --- 2. 相机 ---
     const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 100);
-    camera.position.z = 10; // 拉近一点，确保能看到
+    camera.position.z = 10; // 保持原有距离，适合 Radius 2.5 的物体
 
     // --- 3. 渲染器 ---
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -67,32 +62,48 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
-    // --- 4. 物体：傅里叶纽结 ---
+    // --- 4. 灯光 (新增：为 Phong 材质提供照明) ---
+    const ambientLight = new THREE.AmbientLight(0x404040, 2); // 环境光
+    scene.add(ambientLight);
+
+    const pointLight = new THREE.PointLight(0xffffff, 2, 50);
+    pointLight.position.set(5, 5, 5); // 光源位置
+    scene.add(pointLight);
+
+    // --- 5. 物体：傅里叶纽结 ---
+    // 保持原有尺寸参数以适应容器 (Radius 2.5)
     const geometry = new THREE.TorusKnotGeometry(2.5, 0.3, 150, 16, 2, 3);
 
-    // 材质：高亮线框，不透明
-    const material = new THREE.MeshBasicMaterial({
-      color: 0x33ff00, // 纯 DOS 绿
-      wireframe: true,
-      transparent: false, // 关闭透明
-      opacity: 1.0, // 完全不透明
+    // [关键修改] 材质：回归全息风格 (Phong + Wireframe)
+    const material = new THREE.MeshPhongMaterial({
+      color: 0x00ff41, // 核心颜色：终端绿
+      emissive: 0x003300, // 自发光：深绿 (防止暗处完全消失)
+      specular: 0x111111, // 高光微弱
+      shininess: 30,
+      wireframe: true, // 开启线框
+      transparent: true, // 开启透明
+      opacity: 0.8, // 80% 不透明度
+      side: THREE.DoubleSide, // 双面渲染
     });
 
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
-    // --- 5. 粒子 (增加视觉体积感) ---
+    // --- 6. 粒子 (增加视觉体积感，保持不变) ---
     const pGeo = new THREE.TorusKnotGeometry(2.5, 0.6, 100, 4, 2, 3);
     const pMat = new THREE.PointsMaterial({
-      color: 0xffffff,
-      size: 0.05,
+      color: 0x33ff00, // 粒子也改为绿色，统一色调
+      size: 0.03,
+      transparent: true,
+      opacity: 0.6,
     });
     const particles = new THREE.Points(pGeo, pMat);
     scene.add(particles);
 
-    // --- 6. 动画 ---
+    // --- 7. 动画 ---
     const animate = () => {
-      requestAnimationFrame(animate);
+      // 简单的自转逻辑，不依赖外部状态
+      if (!renderer.domElement.parentNode) return; // 防止组件卸载后继续运行
 
       mesh.rotation.x += 0.005;
       mesh.rotation.y += 0.008;
@@ -101,6 +112,7 @@
       particles.rotation.y -= 0.008;
 
       renderer.render(scene, camera);
+      requestAnimationFrame(animate);
     };
 
     animate();
@@ -118,7 +130,7 @@
     window.addEventListener("resize", onResize);
   }
 
-  // 立即执行 + 页面加载后执行
+  // 立即执行 + 页面加载后执行 (适配 View Transitions)
   initHologram();
   document.addEventListener("astro:page-load", initHologram);
 </script>
