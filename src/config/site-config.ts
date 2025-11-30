@@ -79,13 +79,7 @@ export const PROJECTS: ProjectItem[] = [
   },
 ];
 
-
-
-// src/config/site-config.ts (追加在文件末尾)
-
-// ... (上方原有的 SITE_CONFIG, SOCIAL_LINKS 等保持不变) ...
-
-// Giscus 评论配置 (已填入你的真实数据)
+// Giscus 评论配置 
 export const GISCUS_CONFIG = {
   repo: "vast-jiang/astro-dos-theme",
   repoId: "R_kgDOQeuWZg",

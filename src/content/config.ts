@@ -13,7 +13,7 @@ const blog = defineCollection({
   }),
 });
 
-// 2. 定义项目集合 (你的报错是因为缺少这个!)
+// 2. 定义项目集合 
 const projects = defineCollection({
   type: 'content',
   schema: z.object({

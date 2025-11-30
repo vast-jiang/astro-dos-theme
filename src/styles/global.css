@@ -30,8 +30,6 @@
     font-size: 1.25rem;
     overflow-x: hidden;
     text-shadow: 0 0 4px rgba(51, 255, 0, 0.4);
-
-    /* 🔴 修复点：移除了这里的 animation，防止干扰鼠标坐标 */
   }
 
   ::-webkit-scrollbar {
