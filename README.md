@@ -1,18 +1,17 @@
-```markdown
 # 📟 Astro DOS Cyberpunk Terminal
 
 <div align="center">
 
-!https://img.shields.io/badge/Astro_v5-2C2052?style=for-the-badge&logo=astro&logoColor=white
-!https://img.shields.io/badge/Tailwind_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white
-!https://img.shields.io/badge/TypeScript-5.0-007ACC?style=for-the-badge&logo=typescript&logoColor=white
-!https://img.shields.io/badge/License-MIT-green?style=for-the-badge
+![Astro](https://img.shields.io/badge/Astro_v5-2C2052?style=for-the-badge&logo=astro&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/Tailwind_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
 **一个运行在浏览器里的赛博朋克微型操作系统**
 <br>
 A retro-futuristic mini OS running in your browser.
 
-#-中文文档 | #-english-documentation
+[🇨🇳 中文文档](#-中文文档) | [🇺🇸 English Docs](#-english-documentation)
 
 </div>
 
@@ -41,25 +40,21 @@ A retro-futuristic mini OS running in your browser.
 ### 📂 项目架构 (V3.0.0)
 
 项目采用领域驱动设计 (DDD)，结构清晰，易于维护：
-
-```
 /
-├── public/                  # 静态资源 (图片、音乐、下载文件)
+├── public/ # 静态资源 (图片、音乐、下载文件)
 ├── src/
-│   ├── components/          # UI 组件库
-│   │   ├── common/          # 原子组件 (SEO头部, 图片防挂, 搜索)
-│   │   ├── dashboard/       # 仪表盘组件 (系统监控, 留言板, 作品集)
-│   │   ├── layout/          # 布局组件 (页眉, 页脚)
-│   │   └── system/          # 系统核心 (控制台, CLI逻辑, 播放器)
-│   ├── config/              # ⚙️ 配置中心 (修改此处即可定制网站)
-│   │   ├── site-config.ts   # 个人信息、社交链接、Giscus配置
-│   │   └── terminal-fs.ts   # 虚拟文件系统定义
-│   ├── content/             # Markdown 博客文章
-│   ├── layouts/             # 页面基础布局
-│   └── pages/               # 路由页面 (首页, 标签页, RSS等)
+│ ├── components/ # UI 组件库
+│ │ ├── common/ # 原子组件 (SEO头部, 图片防挂, 搜索)
+│ │ ├── dashboard/ # 仪表盘组件 (系统监控, 留言板, 作品集)
+│ │ ├── layout/ # 布局组件 (页眉, 页脚)
+│ │ └── system/ # 系统核心 (控制台, CLI逻辑, 播放器)
+│ ├── config/ # ⚙️ 配置中心 (修改此处即可定制网站)
+│ │ ├── site-config.ts # 个人信息、社交链接、Giscus配置
+│ │ └── terminal-fs.ts # 虚拟文件系统定义
+│ ├── content/ # Markdown 博客文章
+│ ├── layouts/ # 页面基础布局
+│ └── pages/ # 路由页面 (首页, 标签页, RSS等)
 └── package.json
-```
-
 ### 🚀 快速开始
 
 在终端中运行以下命令：
@@ -94,17 +89,12 @@ A retro-futuristic mini OS running in your browser.
 #### 3. 快速写博客 (VS Code)
 
 在 `.md` 文件中输入 `dosblog` 并回车，自动生成标准头部：
-
-```yaml
----
+yaml
 title: "文章标题"
 description: "文章摘要"
 date: 2025-01-01
 tags: ["TECH", "LIFE"]
 draft: false
----
-```
-
 ### 🎮 终端彩蛋指令
 
 在网页任意位置按 <kbd>Ctrl</kbd> + <kbd>K</kbd> 或点击右下角按钮呼出终端：
@@ -141,23 +131,19 @@ It is not just a blog; it is a **Simulated Operating System** running in your br
 ### 📂 Project Structure (V3.0.0)
 
 Domain-Driven Design (DDD) structure for easy maintenance:
-
-```
 /
 ├── src/
-│   ├── components/          # UI Libraries
-│   │   ├── common/          # Atoms (Head, Image, Search)
-│   │   ├── dashboard/       # Widgets (Monitor, GuestBook, Gallery)
-│   │   ├── layout/          # Header, Footer
-│   │   └── system/          # Core (Console, CLI Logic, Audio)
-│   ├── config/              # ⚙️ Configuration Center
-│   │   ├── site-config.ts   # User info, Socials, Giscus
-│   │   └── terminal-fs.ts   # VFS Definitions
-│   ├── content/             # Markdown Posts
-│   └── pages/               # Routes
+│ ├── components/ # UI Libraries
+│ │ ├── common/ # Atoms (Head, Image, Search)
+│ │ ├── dashboard/ # Widgets (Monitor, GuestBook, Gallery)
+│ │ ├── layout/ # Header, Footer
+│ │ └── system/ # Core (Console, CLI Logic, Audio)
+│ ├── config/ # ⚙️ Configuration Center
+│ │ ├── site-config.ts # User info, Socials, Giscus
+│ │ └── terminal-fs.ts # VFS Definitions
+│ ├── content/ # Markdown Posts
+│ └── pages/ # Routes
 └── package.json
-```
-
 ### 🚀 Getting Started
 
 Run these commands in your terminal:
@@ -202,4 +188,3 @@ Press <kbd>Ctrl</kbd> + <kbd>K</kbd> to toggle the global terminal:
 <div align="center">
 Built with ❤️ by VAST_JIANG
 </div>
-```
