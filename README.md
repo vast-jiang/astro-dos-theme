@@ -1,106 +1,265 @@
-📟 Astro DOS Cyberpunk Terminal
-![alt text](https://img.shields.io/badge/astro-%232C2052.svg?style=for-the-badge&logo=astro&logoColor=white)
+# 📟 Astro DOS Cyberpunk Terminal
 
-![alt text](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
+<div align="center">
 
-![alt text](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
-🇺🇸 English Documentation | 🇨🇳 中文文档
-🇺🇸 English Documentation
-📖 Introduction
-Astro DOS Terminal is a highly immersive, retro-futuristic personal website and blog system. It combines the nostalgia of MS-DOS with the aesthetics of Cyberpunk 2077.
-It's not just a static site; it's a simulated operating system running in your browser.
-✨ Key Features
-📺 CRT Visuals: Authentic scanlines, text glow, and screen curvature effects.
-💻 Global Terminal (CLI 2.0): A functional command-line interface. Use ls, cd, cat to browse the site like a hacker.
-🎵 Integrated Music Player: Global persistent music playback with a spectrum visualizer.
-🗂️ Virtual File System (VFS): Simulated directory structure (/home, /bin, /var/log).
-🏷️ Tag System: Database-like index page for browsing articles by tags.
-💬 Comments: Integrated Giscus comment system (Github Discussions driven) with a transparent DOS theme.
-⚡ Performance: Built on Astro v5 with View Transitions for app-like smooth navigation.
-📂 Project Structure
-The project follows a Domain-Driven Design (DDD) structure:
-code
-Text
-/
-├── public/                  # Static assets (images, music, files)
-├── src/
-│   ├── components/          # UI Components
-│   │   ├── common/          # Atoms (CyberImage, Search, Head)
-│   │   ├── dashboard/       # Homepage Widgets (Monitor, Comments)
-│   │   ├── layout/          # Header & Footer
-│   │   └── system/          # OS Core (CommandCenter, CLI Logic)
-│   ├── config/              # Global Configuration (Single Source of Truth)
-│   │   ├── site-config.ts   # User info, social links, Giscus settings
-│   │   └── terminal-fs.ts   # Virtual File System definition
-│   ├── content/             # Markdown Blog Posts
-│   ├── layouts/             # Base HTML Layouts
-│   └── pages/               # Routes (Home, Tags, RSS, etc.)
-└── package.json
-🧞 Commands
-NPM Script	Action
-npm install	Installs dependencies
-npm run dev	Starts local dev server at localhost:4321
-npm run build	Build your production site to ./dist/
-npm run preview	Preview your build locally
-⚙️ Configuration
-Personal Info: Edit src/config/site-config.ts to update your name, ID, social links, and playlist.
-Terminal Commands: Edit src/config/terminal-fs.ts to modify the virtual file system structure.
-Writing Posts: Use the VS Code snippet dosblog to generate frontmatter quickly.
-🇨🇳 中文文档
-📖 项目简介
-Astro DOS Terminal 是一个具有高度沉浸感的、复古未来主义风格的个人主页与博客系统。它完美融合了 MS-DOS 的怀旧感与赛博朋克 2077 的视觉美学。
-这不仅仅是一个静态网页，它是一个运行在浏览器中的模拟操作系统。
-✨ 核心特性
-📺 CRT 视觉特效: 真实的扫描线、文字辉光、屏幕曲面与开机动画。
-💻 全局终端 (CLI 2.0): 真实可用的命令行接口。支持 ls, cd, cat, open 等命令，像黑客一样浏览网页。
-🎵 沉浸式音乐播放器: 支持全局后台播放、切歌、频谱可视化动画。
-🗂️ 虚拟文件系统 (VFS): 模拟真实的目录结构 (/home, /bin, /var/log)。
-🏷️ 标签索引系统: 数据库风格的标签云页面，支持按标签筛选文章。
-💬 评论系统: 集成 Giscus (基于 GitHub Discussions)，定制透明 DOS 主题，完美融入界面。
-⚡ 极致性能: 基于 Astro v5 构建，使用 View Transitions 实现无刷新页面切换。
-📂 项目结构
-项目采用领域驱动设计 (DDD) 的模块化结构：
-code
-Text
+![Astro](https://img.shields.io/badge/Astro_v5-2C2052?style=for-the-badge&logo=astro&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/Tailwind_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+
+**一个运行在浏览器里的赛博朋克微型操作系统**
+<br>
+A retro-futuristic mini OS running in your browser.
+
+[🇨🇳 中文文档](#-中文文档) | [🇺🇸 English Docs](#-english-documentation)
+
+</div>
+
+---
+
+## 🇨🇳 中文文档
+
+### 📖 项目简介
+
+**Astro DOS Terminal** 是一个具有高度沉浸感的个人主页与博客系统。它摒弃了传统的网页布局，完美融合了 MS-DOS 的怀旧指令交互与 Cyberpunk 2077 的视觉美学。
+
+这不仅仅是一个静态博客，它包含了一个**虚拟文件系统 (VFS)**、**全局命令行终端**以及**沉浸式媒体体验**。
+
+### ✨ 核心特性
+
+| 模块 | 功能描述 |
+| :--- | :--- |
+| **📺 视觉引擎** | 真实的 CRT 扫描线、文字辉光、屏幕曲面畸变与复古开机动画。 |
+| **💻 终端系统** | **CLI 2.0 核心**。支持 `ls`, `cd`, `cat`, `open`, `sudo` 等指令，像黑客一样浏览网站。 |
+| **🗂️ 虚拟文件系统** | 模拟真实的目录结构 (`/home`, `/bin`, `/var/log`)，支持自定义文件与快捷方式。 |
+| **🎵 媒体中心** | 全局持久化音乐播放器，支持切歌、暂停与**实时频谱可视化**。 |
+| **🏷️ 索引系统** | 数据库风格的**标签云 (Tag Cloud)**，支持多维度筛选文章。 |
+| **💬 通讯模块** | 集成 **Giscus** 评论系统，定制化**透明暗色主题**，完美融入玻璃面板。 |
+| **⚡ 极致性能** | 基于 **Astro v5** + **View Transitions**，实现 APP 般的无刷新流畅体验。 |
+
+### 📂 项目架构 (V3.0.0)
+
+项目采用领域驱动设计 (DDD)，结构清晰，易于维护：
+
+```text
 /
 ├── public/                  # 静态资源 (图片、音乐、下载文件)
 ├── src/
-│   ├── components/          # 组件库
-│   │   ├── common/          # 通用原子组件 (SEO头部, 图片防挂, 搜索)
+│   ├── components/          # UI 组件库
+│   │   ├── common/          # 原子组件 (SEO头部, 图片防挂, 搜索)
 │   │   ├── dashboard/       # 仪表盘组件 (系统监控, 留言板, 作品集)
 │   │   ├── layout/          # 布局组件 (页眉, 页脚)
-│   │   └── system/          # 系统核心 (控制台, CLI 逻辑, 播放器)
-│   ├── config/              # 配置中心 (全局真理之源)
-│   │   ├── site-config.ts   # 个人信息、社交链接、Giscus 配置
+│   │   └── system/          # 系统核心 (控制台, CLI逻辑, 播放器)
+│   ├── config/              # ⚙️ 配置中心 (修改此处即可定制网站)
+│   │   ├── site-config.ts   # 个人信息、社交链接、Giscus配置
 │   │   └── terminal-fs.ts   # 虚拟文件系统定义
 │   ├── content/             # Markdown 博客文章
 │   ├── layouts/             # 页面基础布局
-│   └── pages/               # 路由页面 (首页, 标签页, RSS 等)
+│   └── pages/               # 路由页面 (首页, 标签页, RSS等)
 └── package.json
-🧞 常用指令
-命令	说明
-npm install	安装项目依赖
+
+
+🚀 快速开始
+在终端中运行以下命令：
+命令	作用
+npm install	安装依赖
 npm run dev	启动本地开发服务器 (localhost:4321)
-npm run build	构建生产环境代码到 ./dist/ 目录
-npm run preview	预览构建后的生产环境效果
+npm run build	构建生产环境代码到 ./dist/
+npm run preview	预览生产环境构建效果
 ⚙️ 个性化配置指南
-此项目设计为高度可配置，无需修改底层代码即可变成你的个人网站。
-1. 修改基本信息
-打开 src/config/site-config.ts，你可以修改：
-SITE_CONFIG: 网站标题、作者名、ID、地理位置。
-SOCIAL_LINKS: 首页的社交媒体卡片。
-MUSIC_PLAYLIST: 背景音乐列表。
-GISCUS_CONFIG: 评论系统的 Repo ID 和 Category ID。
-2. 自定义终端命令
-打开 src/config/terminal-fs.ts，你可以定义虚拟文件系统。
-添加 type: 'file' 来创建文本文件（可用 cat 读取）。
-添加 type: 'link' 来创建快捷方式（可用 open 跳转）。
-3. 快速写博客
-在 VS Code 中打开 .md 文件，输入 dosblog 并回车，即可自动生成包含标题、日期、标签的标准头部信息。
+你不需要懂复杂的代码即可定制此主题，只需修改 src/config/ 下的文件：
+1. 身份与社交 (Site Config)
+编辑 src/config/site-config.ts：
+SITE_CONFIG: 修改网站标题、你的名字、ID、地理位置。
+SOCIAL_LINKS: 修改首页显示的社交卡片。
+MUSIC_PLAYLIST: 替换为你喜欢的 .mp3 音乐链接。
+GISCUS_CONFIG: 填入你的 GitHub Repo ID 和 Category ID。
+2. 定制终端文件 (Virtual FS)
+编辑 src/config/terminal-fs.ts：
+添加 type: 'file'：创建文本文件（访客可用 cat 读取）。
+添加 type: 'link'：创建快捷方式（访客可用 open 跳转）。
+3. 快速写博客 (VS Code)
+在 .md 文件中输入 dosblog 并回车，自动生成标准头部：
+---
+title: "文章标题"
+description: "文章摘要"
+date: 2025-01-01
+tags: ["TECH", "LIFE"]
+draft: false
+---
 🎮 终端彩蛋指令
-在网页任意位置按 Ctrl + K 或点击底部按钮呼出终端，尝试输入：
-help: 查看帮助
-whoami: 查看当前身份
-game: 玩猜数字游戏
-matrix: 进入黑客帝国模式
-reboot: 重启系统界面
+在网页任意位置按 <kbd>Ctrl</kbd> + <kbd>K</kbd> 或点击右下角按钮呼出终端：
+help : 查看指令清单
+ls / ll : 列出当前目录文件
+whoami : 查看当前访客身份
+game : 玩“猜数字”小游戏
+matrix : 进入黑客帝国模式 (视觉特效)
+reboot : 重启系统界面
+
+
+
+
+很抱歉，作为一个 AI 对话模型，我**无法直接生成一个物理文件（如 .md 文件）**供你点击下载。
+但是，为了解决你提到的“手动复制排版错误”的问题，我把文件的原始内容封装在下面这个代码块里。
+请执行以下操作，绝对不会出错：
+点击下面代码块右上角的 "Copy" (或复制图标) 按钮。
+在你的项目根目录下新建一个文件，命名为 README.md。
+打开这个文件，Ctrl + V (粘贴)。
+保存。
+这样排版会完美保留。
+code
+Markdown
+# 📟 Astro DOS Cyberpunk Terminal
+
+<div align="center">
+
+![Astro](https://img.shields.io/badge/Astro_v5-2C2052?style=for-the-badge&logo=astro&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/Tailwind_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+
+**一个运行在浏览器里的赛博朋克微型操作系统**
+<br>
+A retro-futuristic mini OS running in your browser.
+
+[🇨🇳 中文文档](#-中文文档) | [🇺🇸 English Docs](#-english-documentation)
+
+</div>
+
+---
+
+## 🇨🇳 中文文档
+
+### 📖 项目简介
+
+**Astro DOS Terminal** 是一个具有高度沉浸感的个人主页与博客系统。它摒弃了传统的网页布局，完美融合了 MS-DOS 的怀旧指令交互与 Cyberpunk 2077 的视觉美学。
+
+这不仅仅是一个静态博客，它包含了一个**虚拟文件系统 (VFS)**、**全局命令行终端**以及**沉浸式媒体体验**。
+
+### ✨ 核心特性
+
+| 模块 | 功能描述 |
+| :--- | :--- |
+| **📺 视觉引擎** | 真实的 CRT 扫描线、文字辉光、屏幕曲面畸变与复古开机动画。 |
+| **💻 终端系统** | **CLI 2.0 核心**。支持 `ls`, `cd`, `cat`, `open`, `sudo` 等指令，像黑客一样浏览网站。 |
+| **🗂️ 虚拟文件系统** | 模拟真实的目录结构 (`/home`, `/bin`, `/var/log`)，支持自定义文件与快捷方式。 |
+| **🎵 媒体中心** | 全局持久化音乐播放器，支持切歌、暂停与**实时频谱可视化**。 |
+| **🏷️ 索引系统** | 数据库风格的**标签云 (Tag Cloud)**，支持多维度筛选文章。 |
+| **💬 通讯模块** | 集成 **Giscus** 评论系统，定制化**透明暗色主题**，完美融入玻璃面板。 |
+| **⚡ 极致性能** | 基于 **Astro v5** + **View Transitions**，实现 APP 般的无刷新流畅体验。 |
+
+### 📂 项目架构 (V3.0.0)
+
+项目采用领域驱动设计 (DDD)，结构清晰，易于维护：
+
+```text
+/
+├── public/                  # 静态资源 (图片、音乐、下载文件)
+├── src/
+│   ├── components/          # UI 组件库
+│   │   ├── common/          # 原子组件 (SEO头部, 图片防挂, 搜索)
+│   │   ├── dashboard/       # 仪表盘组件 (系统监控, 留言板, 作品集)
+│   │   ├── layout/          # 布局组件 (页眉, 页脚)
+│   │   └── system/          # 系统核心 (控制台, CLI逻辑, 播放器)
+│   ├── config/              # ⚙️ 配置中心 (修改此处即可定制网站)
+│   │   ├── site-config.ts   # 个人信息、社交链接、Giscus配置
+│   │   └── terminal-fs.ts   # 虚拟文件系统定义
+│   ├── content/             # Markdown 博客文章
+│   ├── layouts/             # 页面基础布局
+│   └── pages/               # 路由页面 (首页, 标签页, RSS等)
+└── package.json
+🚀 快速开始
+在终端中运行以下命令：
+命令	作用
+npm install	安装依赖
+npm run dev	启动本地开发服务器 (localhost:4321)
+npm run build	构建生产环境代码到 ./dist/
+npm run preview	预览生产环境构建效果
+⚙️ 个性化配置指南
+你不需要懂复杂的代码即可定制此主题，只需修改 src/config/ 下的文件：
+1. 身份与社交 (Site Config)
+编辑 src/config/site-config.ts：
+SITE_CONFIG: 修改网站标题、你的名字、ID、地理位置。
+SOCIAL_LINKS: 修改首页显示的社交卡片。
+MUSIC_PLAYLIST: 替换为你喜欢的 .mp3 音乐链接。
+GISCUS_CONFIG: 填入你的 GitHub Repo ID 和 Category ID。
+2. 定制终端文件 (Virtual FS)
+编辑 src/config/terminal-fs.ts：
+添加 type: 'file'：创建文本文件（访客可用 cat 读取）。
+添加 type: 'link'：创建快捷方式（访客可用 open 跳转）。
+3. 快速写博客 (VS Code)
+在 .md 文件中输入 dosblog 并回车，自动生成标准头部：
+code
+Yaml
+---
+title: "文章标题"
+description: "文章摘要"
+date: 2025-01-01
+tags: ["TECH", "LIFE"]
+draft: false
+---
+🎮 终端彩蛋指令
+在网页任意位置按 <kbd>Ctrl</kbd> + <kbd>K</kbd> 或点击右下角按钮呼出终端：
+help : 查看指令清单
+ls / ll : 列出当前目录文件
+whoami : 查看当前访客身份
+game : 玩“猜数字”小游戏
+matrix : 进入黑客帝国模式 (视觉特效)
+reboot : 重启系统界面
+🇺🇸 English Documentation
+📖 Introduction
+Astro DOS Terminal is a highly immersive, retro-futuristic personal website system. It abandons traditional web layouts in favor of a fusion between MS-DOS nostalgia and Cyberpunk 2077 aesthetics.
+It is not just a blog; it is a Simulated Operating System running in your browser.
+✨ Key Features
+Module	Description
+📺 Visual Engine	Authentic CRT scanlines, text glow, screen curvature, and retro boot sequences.
+💻 Terminal OS	CLI 2.0 Core. Use ls, cd, cat, open, sudo to browse the site like a hacker.
+🗂️ Virtual FS	Simulated file system (/home, /bin, /var/log) with custom files and shortcuts.
+🎵 Media Center	Global persistent music player with track switching and real-time visualizer.
+🏷️ Index System	Database-style Tag Cloud for filtering articles.
+💬 Comms	Integrated Giscus comments with a custom transparent dark theme.
+⚡ Performance	Built on Astro v5 with View Transitions for an App-like experience.
+📂 Project Structure (V3.0.0)
+Domain-Driven Design (DDD) structure for easy maintenance:
+/
+├── src/
+│   ├── components/          # UI Libraries
+│   │   ├── common/          # Atoms (Head, Image, Search)
+│   │   ├── dashboard/       # Widgets (Monitor, GuestBook, Gallery)
+│   │   ├── layout/          # Header, Footer
+│   │   └── system/          # Core (Console, CLI Logic, Audio)
+│   ├── config/              # ⚙️ Configuration Center
+│   │   ├── site-config.ts   # User info, Socials, Giscus
+│   │   └── terminal-fs.ts   # VFS Definitions
+│   ├── content/             # Markdown Posts
+│   └── pages/               # Routes
+└── package.json
+🚀 Getting Started
+Run these commands in your terminal:
+Command	Action
+npm install	Install dependencies
+npm run dev	Start local dev server (localhost:4321)
+npm run build	Build for production to ./dist/
+npm run preview	Preview production build locally
+⚙️ Customization Guide
+1. Identity & Socials
+Edit src/config/site-config.ts:
+Update SITE_CONFIG with your name, location, and ID.
+Update SOCIAL_LINKS and MUSIC_PLAYLIST.
+Update GISCUS_CONFIG with your repository details.
+2. Virtual File System
+Edit src/config/terminal-fs.ts:
+Add type: 'file' for text files (readable via cat).
+Add type: 'link' for shortcuts (openable via open).
+🎮 Terminal Commands
+Press <kbd>Ctrl</kbd> + <kbd>K</kbd> to toggle the global terminal:
+help : List available commands.
+ls : List directory contents.
+whoami : Show current user session.
+game : Play a mini-game.
+matrix : Trigger visual effects.
+reboot : Restart the UI.
+<div align="center">
+Built with ❤️ by VAST_JIANG
+</div>
+```
