@@ -41,19 +41,19 @@ A retro-futuristic mini OS running in your browser.
 
 项目采用领域驱动设计 (DDD)，结构清晰，易于维护：
 /
-├── public/ # 静态资源 (图片、音乐、下载文件)
+├── public/                  # 静态资源 (图片、音乐、下载文件)
 ├── src/
-│ ├── components/ # UI 组件库
-│ │ ├── common/ # 原子组件 (SEO头部, 图片防挂, 搜索)
-│ │ ├── dashboard/ # 仪表盘组件 (系统监控, 留言板, 作品集)
-│ │ ├── layout/ # 布局组件 (页眉, 页脚)
-│ │ └── system/ # 系统核心 (控制台, CLI逻辑, 播放器)
-│ ├── config/ # ⚙️ 配置中心 (修改此处即可定制网站)
-│ │ ├── site-config.ts # 个人信息、社交链接、Giscus配置
-│ │ └── terminal-fs.ts # 虚拟文件系统定义
-│ ├── content/ # Markdown 博客文章
-│ ├── layouts/ # 页面基础布局
-│ └── pages/ # 路由页面 (首页, 标签页, RSS等)
+│   ├── components/          # UI 组件库
+│   │   ├── common/          # 原子组件 (SEO头部, 图片防挂, 搜索)
+│   │   ├── dashboard/       # 仪表盘组件 (系统监控, 留言板, 作品集)
+│   │   ├── layout/          # 布局组件 (页眉, 页脚)
+│   │   └── system/          # 系统核心 (控制台, CLI逻辑, 播放器)
+│   ├── config/              # ⚙️ 配置中心 (修改此处即可定制网站)
+│   │   ├── site-config.ts   # 个人信息、社交链接、Giscus配置
+│   │   └── terminal-fs.ts   # 虚拟文件系统定义
+│   ├── content/             # Markdown 博客文章
+│   ├── layouts/             # 页面基础布局
+│   └── pages/               # 路由页面 (首页, 标签页, RSS等)
 └── package.json
 ### 🚀 快速开始
 
@@ -133,16 +133,16 @@ It is not just a blog; it is a **Simulated Operating System** running in your br
 Domain-Driven Design (DDD) structure for easy maintenance:
 /
 ├── src/
-│ ├── components/ # UI Libraries
-│ │ ├── common/ # Atoms (Head, Image, Search)
-│ │ ├── dashboard/ # Widgets (Monitor, GuestBook, Gallery)
-│ │ ├── layout/ # Header, Footer
-│ │ └── system/ # Core (Console, CLI Logic, Audio)
-│ ├── config/ # ⚙️ Configuration Center
-│ │ ├── site-config.ts # User info, Socials, Giscus
-│ │ └── terminal-fs.ts # VFS Definitions
-│ ├── content/ # Markdown Posts
-│ └── pages/ # Routes
+│   ├── components/          # UI Libraries
+│   │   ├── common/          # Atoms (Head, Image, Search)
+│   │   ├── dashboard/       # Widgets (Monitor, GuestBook, Gallery)
+│   │   ├── layout/          # Header, Footer
+│   │   └── system/          # Core (Console, CLI Logic, Audio)
+│   ├── config/              # ⚙️ Configuration Center
+│   │   ├── site-config.ts   # User info, Socials, Giscus
+│   │   └── terminal-fs.ts   # VFS Definitions
+│   ├── content/             # Markdown Posts
+│   └── pages/               # Routes
 └── package.json
 ### 🚀 Getting Started
 
