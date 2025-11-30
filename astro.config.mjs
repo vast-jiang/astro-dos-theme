@@ -43,6 +43,10 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,mp3}'], // 缓存这些文件
+        // 🔥🔥🔥 关键修改在这里 🔥🔥🔥
+        // 将最大缓存文件限制设置为 30MB (30 * 1024 * 1024)
+        // 这样可以彻底解决 MP3 和大图片导致的构建报错
+        maximumFileSizeToCacheInBytes: 30 * 1024 * 1024, 
       },
     }),
   ],
