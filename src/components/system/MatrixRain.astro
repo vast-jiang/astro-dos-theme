@@ -1,85 +1,142 @@
 ---
-import { FEATURES } from "../../config/site-config";
-// 如果开关关闭，不渲染
-if (!FEATURES.matrix) return;
+// src/components/system/MatrixRain.astro
 ---
 
-<canvas
-  id="matrix-canvas"
-  class="fixed inset-0 z-[80] pointer-events-none hidden opacity-90 mix-blend-screen"
-></canvas>
+<div
+  id="matrix-rain-root"
+  class="pointer-events-none fixed inset-0 z-[5] mix-blend-screen"
+>
+  <canvas id="matrix-canvas" class="w-full h-full"></canvas>
+</div>
 
 <script>
-  const canvas = document.getElementById("matrix-canvas") as HTMLCanvasElement;
+  // @ts-nocheck
+  (function () {
+    if (typeof window === "undefined") return;
 
-  if (canvas) {
-    const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("Canvas context not supported");
+    const ROOT_ID = "matrix-rain-root";
+    const CANVAS_ID = "matrix-canvas";
 
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
+    /** @type {number[]} */
+    let drops = [];
+    /** @type {number | null} */
+    let animationId = null;
+    let isRunning = false;
 
-    // 字符集
-    const chars =
-      "アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const charArray = chars.split("");
+    function initCanvas() {
+      const canvas = document.getElementById(CANVAS_ID);
+      const root = document.getElementById(ROOT_ID);
+      if (!canvas || !root) return { canvas: null, ctx: null, fontSize: 0 };
 
-    const fontSize = 14;
-    let columns = width / fontSize;
-    const drops: number[] = [];
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return { canvas: null, ctx: null, fontSize: 0 };
 
-    for (let i = 0; i < columns; i++) {
-      drops[i] = 1;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const fontSize = 14;
+      const columns = Math.floor(canvas.width / fontSize);
+      drops = new Array(columns).fill(1);
+
+      ctx.font = fontSize + "px monospace";
+
+      root.style.opacity = "0";
+      root.style.transition = "opacity 0.4s ease-out";
+      root.style.pointerEvents = "none";
+
+      return { canvas, ctx, fontSize };
     }
 
-    let animationId: number;
-    let isActive = false;
+    function startMatrix() {
+      const result = initCanvas();
+      const canvas = result.canvas;
+      const ctx = result.ctx;
+      const fontSize = result.fontSize;
+      if (!canvas || !ctx || !fontSize) return;
 
-    function draw() {
-      if (!ctx) return;
+      const root = document.getElementById(ROOT_ID);
+      if (root) {
+        root.style.opacity = "1";
+        root.style.pointerEvents = "none";
+      }
 
-      // 拖尾效果
-      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-      ctx.fillRect(0, 0, width, height);
+      const characters =
+        "アァカサタナハマヤャラワガザダバパ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-      ctx.fillStyle = "#0F0";
-      ctx.font = `${fontSize}px monospace`;
+      isRunning = true;
 
-      for (let i = 0; i < drops.length; i++) {
-        const text = charArray[Math.floor(Math.random() * charArray.length)];
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+      function draw() {
+        if (!isRunning) return;
 
-        if (drops[i] * fontSize > height && Math.random() > 0.975) {
-          drops[i] = 0;
+        ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "#33ff00";
+        for (let i = 0; i < drops.length; i++) {
+          const text = characters.charAt(
+            Math.floor(Math.random() * characters.length)
+          );
+          const x = i * fontSize;
+          const y = drops[i] * fontSize;
+
+          ctx.fillText(text, x, y);
+
+          if (y > canvas.height && Math.random() > 0.975) {
+            drops[i] = 0;
+          }
+          drops[i]++;
         }
-        drops[i]++;
+
+        animationId = window.requestAnimationFrame(draw);
       }
 
-      if (isActive) {
-        animationId = requestAnimationFrame(draw);
+      if (animationId) {
+        window.cancelAnimationFrame(animationId);
+      }
+
+      animationId = window.requestAnimationFrame(draw);
+    }
+
+    function stopMatrix() {
+      isRunning = false;
+      if (animationId) {
+        window.cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+
+      const canvas = document.getElementById(CANVAS_ID);
+      const root = document.getElementById(ROOT_ID);
+
+      if (canvas) {
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+
+      if (root) {
+        root.style.opacity = "0";
       }
     }
 
-    window.addEventListener("resize", () => {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-      columns = width / fontSize;
-      drops.length = 0;
-      for (let i = 0; i < columns; i++) drops[i] = 1;
-    });
+    document.addEventListener("astro:page-load", () => {
+      // 默认关闭，由命令中心通过自定义事件控制
+      stopMatrix();
 
-    // 监听自定义事件控制开关
-    document.addEventListener("toggle-matrix", ((e: CustomEvent) => {
-      const show = e.detail?.show;
-      if (show) {
-        canvas.classList.remove("hidden");
-        isActive = true;
-        draw();
-      } else {
-        isActive = false;
-        canvas.classList.add("hidden");
-        if (animationId) cancelAnimationFrame(animationId);
-      }
-    }) as EventListener);
-  }
+      // CommandCenter 派发：window.dispatchEvent(new CustomEvent("matrix-toggle", { detail: { enabled: true }}))
+      window.addEventListener("matrix-toggle", (e) => {
+        const enabled = e && e.detail && e.detail.enabled;
+        if (enabled) {
+          startMatrix();
+        } else {
+          stopMatrix();
+        }
+      });
+
+      window.addEventListener("resize", () => {
+        if (!isRunning) return;
+        startMatrix();
+      });
+    });
+  })();
 </script>

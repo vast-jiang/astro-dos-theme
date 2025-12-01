@@ -1,60 +1,158 @@
 ---
-import { Image } from "astro:assets";
+// src/components/common/CyberImage.astro
 
 interface Props {
   src: string;
-  alt: string;
+  alt?: string;
   className?: string;
+  caption?: string;
 }
 
-const { src, alt, className } = Astro.props;
-
-// 逻辑判断：
-// 1. 如果是远程图片 (http开头)，直接用 img 标签 (除非你在 config 里配置了 domains)
-// 2. 如果是本地图片 (public下)，Astro Image 需要特殊处理，或者我们简单处理用原生 lazy
-// 为了兼容性，这里使用一种混合策略：
-const isRemote = src.startsWith("http");
+const { src, alt = "", className = "", caption } = Astro.props as Props;
 ---
 
-<div class={`relative overflow-hidden ${className} bg-gray-900`}>
-  {/* 如果是远程图片，使用标准 img 标签但加上 lazy */}
-  {
-    isRemote ? (
-      <img
-        src={src}
-        alt={alt}
-        class="w-full h-full object-cover transition duration-500 opacity-0 transition-opacity duration-300"
-        loading="lazy"
-        onload="this.style.opacity='1'"
-        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-      />
-    ) : (
-      /* 如果是本地图片，理想情况应移入 src/assets 并 import。
-       但为了兼容 public 目录结构，我们这里依然使用 img，但增强加载体验 */
-      <img
-        src={src}
-        alt={alt}
-        class="w-full h-full object-cover transition duration-500 opacity-0 transition-opacity duration-300"
-        loading="lazy"
-        onload="this.style.opacity='1'"
-        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-      />
-    )
-  }
+<div
+  class={`relative group overflow-hidden border border-dos-dim/60 bg-black/60 ${className}`}
+  data-cyber-image
+  data-caption={caption || alt}
+>
+  <img
+    src={src}
+    alt={alt}
+    loading="lazy"
+    class="block w-full h-full object-cover transition duration-300 group-hover:scale-[1.03] group-hover:brightness-110"
+  />
 
-  <!-- Fallback Placeholder (加载失败时显示) -->
+  <!-- 右下角小角标 -->
   <div
-    class="hidden absolute inset-0 bg-gray-900 flex-col items-center justify-center border border-red-500/50 p-4 text-center z-10"
+    class="absolute bottom-1 right-1 bg-black/80 text-dos-primary text-[10px] px-1.5 py-0.5 border border-dos-dim/80"
   >
-    <span class="text-red-500 font-bold text-xs animate-pulse">ERROR 404</span>
-    <span class="text-red-400/70 text-[10px] mt-1 font-mono break-all"
-      >ASSET_MISSING</span
-    >
+    IMG_VIEW
   </div>
 
-  <!-- 加载骨架屏 (图片加载前显示) -->
+  <!-- 悬停放大提示 -->
   <div
-    class="absolute inset-0 bg-dos-dim/10 animate-pulse pointer-events-none -z-10"
+    class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center pointer-events-none"
   >
+    <span
+      class="text-xs text-dos-primary border border-dos-primary px-3 py-1 bg-black/70"
+    >
+      [ CLICK TO ZOOM ]
+    </span>
   </div>
 </div>
+
+{caption && <p class="mt-2 text-xs text-dos-dim font-mono">> {caption}</p>}
+
+<script>
+  // @ts-nocheck
+  (function () {
+    if (typeof window === "undefined") return;
+
+    const OVERLAY_ID = "cyber-image-overlay";
+
+    function ensureOverlay() {
+      let overlay = document.getElementById(OVERLAY_ID);
+      if (overlay) return overlay;
+
+      overlay = document.createElement("div");
+      overlay.id = OVERLAY_ID;
+      overlay.className =
+        "fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 opacity-0 pointer-events-none transition-opacity duration-200";
+
+      overlay.innerHTML = `
+        <div class="relative max-w-5xl max-h-[90vh] w-[90vw] border border-dos-primary bg-black/95 shadow-[0_0_25px_rgba(51,255,0,0.4)] overflow-hidden">
+          <button
+            type="button"
+            data-close
+            class="absolute top-2 right-2 z-10 text-[10px] px-2 py-1 border border-dos-dim bg-black/80 text-dos-dim hover:border-dos-primary hover:text-dos-primary"
+          >
+            [ CLOSE ]
+          </button>
+          <div class="p-3 border-b border-dos-dim/40 text-xs text-dos-dim flex justify-between items-center">
+            <span class="truncate" data-caption>IMAGE_VIEWER</span>
+            <span class="text-[10px] uppercase text-dos-dim/70">ESC TO EXIT</span>
+          </div>
+          <div class="p-3 flex items-center justify-center">
+            <img
+              data-viewer-image
+              class="max-h-[70vh] max-w-full object-contain"
+              src=""
+              alt=""
+            />
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(overlay);
+      return overlay;
+    }
+
+    function openViewer(trigger) {
+      const overlay = ensureOverlay();
+      const img = trigger.querySelector("img");
+      if (!img) return;
+
+      const viewerImg = overlay.querySelector("[data-viewer-image]");
+      const captionEl = overlay.querySelector("[data-caption]");
+
+      if (viewerImg) {
+        viewerImg.src = img.currentSrc || img.src;
+        viewerImg.alt = img.alt || "";
+      }
+
+      if (captionEl) {
+        const c = trigger.getAttribute("data-caption") || img.alt || "IMAGE";
+        captionEl.textContent = c;
+      }
+
+      overlay.classList.remove("pointer-events-none");
+      overlay.classList.remove("opacity-0");
+      overlay.classList.add("opacity-100");
+    }
+
+    function closeViewer() {
+      const overlay = document.getElementById(OVERLAY_ID);
+      if (!overlay) return;
+      overlay.classList.add("opacity-0");
+      overlay.classList.add("pointer-events-none");
+      overlay.classList.remove("opacity-100");
+    }
+
+    document.addEventListener("astro:page-load", () => {
+      const overlay = ensureOverlay();
+
+      // 点击遮罩或 CLOSE 关闭
+      overlay.addEventListener("click", (event) => {
+        const target = event.target;
+        if (
+          target === overlay ||
+          (target.closest && target.closest("[data-close]"))
+        ) {
+          event.preventDefault();
+          closeViewer();
+        }
+      });
+
+      // 监听所有带 data-cyber-image 的图片容器
+      document.addEventListener("click", (event) => {
+        const target = event.target;
+        if (!target || !target.closest) return;
+        const trigger = target.closest("[data-cyber-image]");
+        if (!trigger) return;
+
+        // 阻止可能的 a 链接默认行为，避免页面滚动到顶部
+        event.preventDefault();
+        event.stopPropagation();
+        openViewer(trigger);
+      });
+
+      // ESC 关闭
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          closeViewer();
+        }
+      });
+    });
+  })();
+</script>

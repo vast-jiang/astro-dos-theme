@@ -1,11 +1,8 @@
 ---
-import {
-  MUSIC_PLAYLIST,
-  GISCUS_CONFIG,
-  FEATURES,
-} from "../../config/site-config";
+// src/components/system/CommandCenter.astro
+
+import { MUSIC_PLAYLIST, FEATURES } from "../../config/site-config";
 import { FILE_SYSTEM, INITIAL_PATH } from "../../config/terminal-fs";
-// 引入 SnakeGame 只是为了类型提示(如果有的话)，实际逻辑在下方 script 中
 ---
 
 <!-- 1. 移动端折叠按钮 -->
@@ -21,6 +18,7 @@ import { FILE_SYSTEM, INITIAL_PATH } from "../../config/terminal-fs";
   id="toolbar"
   class="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-[90] flex flex-col gap-3 items-end font-mono transition-all duration-300 origin-bottom-right scale-0 opacity-0 md:scale-100 md:opacity-100"
 >
+  <!-- 音乐播放器 -->
   <div
     id="music-player"
     class="flex flex-col bg-black/90 border border-dos-dim p-3 shadow-[0_0_15px_rgba(0,143,17,0.3)] backdrop-blur-md w-56 transition-all duration-300 hover:border-dos-primary group"
@@ -66,18 +64,21 @@ import { FILE_SYSTEM, INITIAL_PATH } from "../../config/terminal-fs";
       <button
         id="prev-btn"
         class="flex-1 border border-dos-dim text-dos-dim hover:text-dos-primary text-xs py-1 active:bg-dos-primary active:text-black transition"
-        >|&lt;</button
       >
+        |&lt;
+      </button>
       <button
         id="play-btn"
         class="flex-[2] border border-dos-primary text-dos-primary hover:bg-dos-primary hover:text-black text-sm py-1 font-bold active:scale-95 transition"
-        >▶</button
       >
+        ▶
+      </button>
       <button
         id="next-btn"
         class="flex-1 border border-dos-dim text-dos-dim hover:text-dos-primary text-xs py-1 active:bg-dos-primary active:text-black transition"
-        >&gt;|</button
       >
+        &gt;|
+      </button>
     </div>
   </div>
 
@@ -85,13 +86,15 @@ import { FILE_SYSTEM, INITIAL_PATH } from "../../config/terminal-fs";
     <button
       id="theme-btn"
       class="bg-black/80 text-dos-dim border border-dos-dim px-3 py-1.5 text-xs hover:bg-dos-primary hover:text-black transition uppercase cursor-pointer active:scale-95"
-      >[ THEME ]</button
     >
+      [ THEME ]
+    </button>
     <button
       id="term-btn"
       class="bg-black/80 text-dos-primary border border-dos-primary px-3 py-1.5 text-xs hover:bg-white hover:text-black transition uppercase animate-pulse cursor-pointer active:scale-95"
-      >[ TERMINAL ]</button
     >
+      [ TERMINAL ]
+    </button>
   </div>
 </div>
 
@@ -113,8 +116,10 @@ import { FILE_SYSTEM, INITIAL_PATH } from "../../config/terminal-fs";
       </span>
       <button
         id="close-term"
-        class="hover:bg-black hover:text-dos-primary px-2 transition">X</button
+        class="hover:bg-black hover:text-dos-primary px-2 transition"
       >
+        X
+      </button>
     </div>
     <div
       id="term-output"
@@ -178,195 +183,192 @@ import { FILE_SYSTEM, INITIAL_PATH } from "../../config/terminal-fs";
     features: FEATURES,
   }}
 >
-  // --- 游戏引擎 (内联) ---
-  class GameEngine {
-    constructor(container, onGameOver) {
-      this.grid = 20;
-      this.speed = 100;
-      this.snake = [];
-      this.score = 0;
-      this.direction = { x: 20, y: 0 };
-      this.nextDirection = { x: 20, y: 0 };
-      this.apple = { x: 0, y: 0 };
+  // --- Snake 小游戏引擎（纯 JS） ---
+  function GameEngine(container, onGameOver) {
+    this.grid = 20;
+    this.speed = 100;
+    this.snake = [];
+    this.score = 0;
+    this.direction = { x: 20, y: 0 };
+    this.nextDirection = { x: 20, y: 0 };
+    this.apple = { x: 0, y: 0 };
+    this.isRunning = false;
+    this.lastTime = 0;
+    this.accumulator = 0;
+    this.onGameOver = onGameOver;
+
+    this.canvas = document.createElement("canvas");
+    this.canvas.width = 400;
+    this.canvas.height = 400;
+    this.canvas.style.border = "2px solid #33ff00";
+    this.canvas.style.background = "#050505";
+    this.canvas.style.margin = "10px auto";
+    this.canvas.style.display = "block";
+    this.canvas.style.maxWidth = "100%";
+    container.appendChild(this.canvas);
+    this.ctx = this.canvas.getContext("2d");
+
+    this.handleKey = this.handleKey.bind(this);
+    this.loop = this.loop.bind(this);
+    document.addEventListener("keydown", this.handleKey);
+  }
+
+  GameEngine.prototype.start = function () {
+    if (this.isRunning) return;
+    this.snake = [
+      { x: 100, y: 100 },
+      { x: 80, y: 100 },
+      { x: 60, y: 100 },
+    ];
+    this.score = 0;
+    this.direction = { x: this.grid, y: 0 };
+    this.nextDirection = { x: this.grid, y: 0 };
+    this.placeApple();
+    this.isRunning = true;
+    this.lastTime = 0;
+    this.accumulator = 0;
+    requestAnimationFrame(this.loop);
+  };
+
+  GameEngine.prototype.stop = function () {
+    this.isRunning = false;
+    document.removeEventListener("keydown", this.handleKey);
+    this.canvas.remove();
+  };
+
+  GameEngine.prototype.handleKey = function (e) {
+    if (
+      e.key === "ArrowUp" ||
+      e.key === "ArrowDown" ||
+      e.key === "ArrowLeft" ||
+      e.key === "ArrowRight" ||
+      e.key === " "
+    ) {
+      e.preventDefault();
+    }
+    switch (e.key) {
+      case "ArrowLeft":
+        if (this.direction.x === 0)
+          this.nextDirection = { x: -this.grid, y: 0 };
+        break;
+      case "ArrowRight":
+        if (this.direction.x === 0) this.nextDirection = { x: this.grid, y: 0 };
+        break;
+      case "ArrowUp":
+        if (this.direction.y === 0)
+          this.nextDirection = { x: 0, y: -this.grid };
+        break;
+      case "ArrowDown":
+        if (this.direction.y === 0) this.nextDirection = { x: 0, y: this.grid };
+        break;
+    }
+  };
+
+  GameEngine.prototype.placeApple = function () {
+    var valid = false;
+    while (!valid) {
+      this.apple.x =
+        Math.floor(Math.random() * (this.canvas.width / this.grid)) * this.grid;
+      this.apple.y =
+        Math.floor(Math.random() * (this.canvas.height / this.grid)) *
+        this.grid;
+      valid = !this.snake.some(function (s) {
+        return s.x === this.apple.x && s.y === this.apple.y;
+      }, this);
+    }
+  };
+
+  GameEngine.prototype.update = function () {
+    this.direction = this.nextDirection;
+    var head = {
+      x: this.snake[0].x + this.direction.x,
+      y: this.snake[0].y + this.direction.y,
+    };
+
+    // 撞墙判定
+    if (
+      head.x < 0 ||
+      head.x >= this.canvas.width ||
+      head.y < 0 ||
+      head.y >= this.canvas.height
+    ) {
       this.isRunning = false;
-      this.lastTime = 0;
-      this.accumulator = 0;
-      this.onGameOver = onGameOver;
-
-      this.canvas = document.createElement("canvas");
-      this.canvas.width = 400;
-      this.canvas.height = 400;
-      this.canvas.style.border = "2px solid #33ff00";
-      this.canvas.style.background = "#050505";
-      this.canvas.style.margin = "10px auto";
-      this.canvas.style.display = "block";
-      this.canvas.style.maxWidth = "100%"; // 适配手机
-      container.appendChild(this.canvas);
-      this.ctx = this.canvas.getContext("2d");
-
-      this.handleKey = this.handleKey.bind(this);
-      this.loop = this.loop.bind(this);
-      document.addEventListener("keydown", this.handleKey);
+      this.onGameOver(this.score);
+      return;
     }
 
-    start() {
-      if (this.isRunning) return;
-      // 初始位置，留出空间防止开局撞墙
-      this.snake = [
-        { x: 100, y: 100 },
-        { x: 80, y: 100 },
-        { x: 60, y: 100 },
-      ];
-      this.score = 0;
-      this.direction = { x: this.grid, y: 0 };
-      this.nextDirection = { x: this.grid, y: 0 };
-      this.placeApple();
-      this.isRunning = true;
-      this.lastTime = 0;
-      requestAnimationFrame(this.loop);
-    }
-
-    stop() {
-      this.isRunning = false;
-      document.removeEventListener("keydown", this.handleKey);
-      this.canvas.remove();
-    }
-
-    handleKey(e) {
-      if (
-        ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)
-      )
-        e.preventDefault();
-
-      // 防止反向掉头 (如向右时按左)
-      switch (e.key) {
-        case "ArrowLeft":
-          if (this.direction.x === 0)
-            this.nextDirection = { x: -this.grid, y: 0 };
-          break;
-        case "ArrowRight":
-          if (this.direction.x === 0)
-            this.nextDirection = { x: this.grid, y: 0 };
-          break;
-        case "ArrowUp":
-          if (this.direction.y === 0)
-            this.nextDirection = { x: 0, y: -this.grid };
-          break;
-        case "ArrowDown":
-          if (this.direction.y === 0)
-            this.nextDirection = { x: 0, y: this.grid };
-          break;
-      }
-    }
-
-    placeApple() {
-      let valid = false;
-      while (!valid) {
-        this.apple.x =
-          Math.floor(Math.random() * (this.canvas.width / this.grid)) *
-          this.grid;
-        this.apple.y =
-          Math.floor(Math.random() * (this.canvas.height / this.grid)) *
-          this.grid;
-        // 确保不生成在蛇身上
-        valid = !this.snake.some(
-          (s) => s.x === this.apple.x && s.y === this.apple.y
-        );
-      }
-    }
-
-    update() {
-      this.direction = this.nextDirection;
-      const head = {
-        x: this.snake[0].x + this.direction.x,
-        y: this.snake[0].y + this.direction.y,
-      };
-
-      // --- 🐍 修复点：撞墙检测 (Game Over) ---
-      if (
-        head.x < 0 ||
-        head.x >= this.canvas.width ||
-        head.y < 0 ||
-        head.y >= this.canvas.height
-      ) {
+    // 撞自己
+    for (var i = 0; i < this.snake.length; i++) {
+      if (head.x === this.snake[i].x && head.y === this.snake[i].y) {
         this.isRunning = false;
         this.onGameOver(this.score);
         return;
       }
+    }
 
-      // 撞自己检测
-      for (let i = 0; i < this.snake.length; i++) {
-        if (head.x === this.snake[i].x && head.y === this.snake[i].y) {
-          this.isRunning = false;
-          this.onGameOver(this.score);
-          return;
-        }
-      }
+    this.snake.unshift(head);
 
-      this.snake.unshift(head);
+    if (head.x === this.apple.x && head.y === this.apple.y) {
+      this.score += 10;
+      this.placeApple();
+    } else {
+      this.snake.pop();
+    }
+  };
 
-      // 吃苹果
-      if (head.x === this.apple.x && head.y === this.apple.y) {
-        this.score += 10;
-        this.placeApple();
-        // 不 pop，蛇变长
+  GameEngine.prototype.draw = function () {
+    this.ctx.fillStyle = "black";
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    this.ctx.fillStyle = "#ff3300";
+    this.ctx.fillRect(
+      this.apple.x + 1,
+      this.apple.y + 1,
+      this.grid - 2,
+      this.grid - 2
+    );
+
+    var i;
+    for (i = 0; i < this.snake.length; i++) {
+      var s = this.snake[i];
+      if (i === 0) {
+        this.ctx.fillStyle = "#ccffcc";
       } else {
-        this.snake.pop();
+        this.ctx.fillStyle = "#33ff00";
       }
+      this.ctx.fillRect(s.x + 1, s.y + 1, this.grid - 2, this.grid - 2);
     }
 
-    draw() {
-      this.ctx.fillStyle = "black";
-      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.fillStyle = "white";
+    this.ctx.font = "14px monospace";
+    this.ctx.fillText("SCORE: " + this.score, 10, 20);
+  };
 
-      // Apple
-      this.ctx.fillStyle = "#ff3300";
-      this.ctx.fillRect(
-        this.apple.x + 1,
-        this.apple.y + 1,
-        this.grid - 2,
-        this.grid - 2
-      );
+  GameEngine.prototype.loop = function (timestamp) {
+    if (!this.isRunning) return;
+    if (!this.lastTime) this.lastTime = timestamp;
+    var delta = timestamp - this.lastTime;
+    this.lastTime = timestamp;
+    this.accumulator += delta;
 
-      // Snake
-      this.ctx.fillStyle = "#33ff00";
-      this.snake.forEach((s, i) => {
-        // 蛇头颜色略不同
-        this.ctx.fillStyle = i === 0 ? "#ccffcc" : "#33ff00";
-        this.ctx.fillRect(s.x + 1, s.y + 1, this.grid - 2, this.grid - 2);
-      });
-
-      // Score
-      this.ctx.fillStyle = "white";
-      this.ctx.font = "14px monospace";
-      this.ctx.fillText(`SCORE: ${this.score}`, 10, 20);
+    while (this.accumulator >= this.speed) {
+      this.update();
+      this.accumulator -= this.speed;
     }
+    this.draw();
+    requestAnimationFrame(this.loop);
+  };
 
-    loop(timestamp) {
-      if (!this.isRunning) return;
-      if (!this.lastTime) this.lastTime = timestamp;
-      const delta = timestamp - this.lastTime;
-      this.lastTime = timestamp;
-      this.accumulator += delta;
-
-      while (this.accumulator >= this.speed) {
-        this.update();
-        this.accumulator -= this.speed;
-      }
-      this.draw();
-      requestAnimationFrame(this.loop);
-    }
-  }
-
-  // --- 终端核心逻辑 ---
-  const playlist = playlistData;
-  const fileSystem = fsData;
-  let currentPath = [...initPath];
-  let currentGame = null;
+  // --- 终端 & 文件系统核心 ---
+  var playlist = playlistData;
+  var fileSystem = fsData;
+  var currentPath = initPath.slice();
+  var currentGame = null;
 
   function getCurrentDir() {
-    let current = fileSystem.root;
-    for (const p of currentPath) {
+    var current = fileSystem.root;
+    for (var i = 0; i < currentPath.length; i++) {
+      var p = currentPath[i];
       if (current.children && current.children[p]) {
         current = current.children[p];
       } else {
@@ -377,25 +379,40 @@ import { FILE_SYSTEM, INITIAL_PATH } from "../../config/terminal-fs";
   }
 
   function getPromptPath() {
-    return `ROOT@SYSTEM:/${currentPath.join("/")}`;
+    return "ROOT@SYSTEM:/" + currentPath.join("/");
   }
+
   function updatePrompt() {
-    const el = document.getElementById("term-prompt-path");
+    var el = document.getElementById("term-prompt-path");
     if (el) el.innerText = getPromptPath();
   }
 
+  function logToTerm(text, isCmd) {
+    var termOutput = document.getElementById("term-output");
+    if (!termOutput) return;
+    var div = document.createElement("div");
+    if (isCmd) {
+      div.innerHTML =
+        '<span class="text-white opacity-50">[USER] > ' + text + "</span>";
+    } else {
+      div.innerHTML = text;
+    }
+    termOutput.appendChild(div);
+    termOutput.scrollTop = termOutput.scrollHeight;
+  }
+
   function execCommand(input) {
-    // 🛡️ DRM
-    const _k = atob("dmFzdC1qaWFuZw==");
-    const _el = document.getElementById("author-credit");
-    if (!_el || !_el.href.includes(_k)) {
-      logToTerm(`[SYSTEM CRITICAL ERROR]`, false);
+    // DRM 校验
+    var _k = atob("dmFzdC1qaWFuZw==");
+    var _el = document.getElementById("author-credit");
+    if (!_el || _el.href.indexOf(_k) === -1) {
+      logToTerm("[SYSTEM CRITICAL ERROR]", false);
       return;
     }
 
-    const args = input.trim().split(/\s+/);
-    const cmd = args[0].toLowerCase();
-    const param = args[1];
+    var args = input.trim().split(/\s+/);
+    var cmd = args[0] ? args[0].toLowerCase() : "";
+    var param = args[1];
 
     if (cmd === "") return;
 
@@ -412,10 +429,12 @@ import { FILE_SYSTEM, INITIAL_PATH } from "../../config/terminal-fs";
 
     switch (cmd) {
       case "help":
-        logToTerm(`COMMANDS: ls, cd, cat, open, clear, snake, whoami, music`);
+        logToTerm(
+          "COMMANDS: ls, cd, cat, open, clear, snake, whoami, music, theme"
+        );
         return;
       case "clear":
-        const output = document.getElementById("term-output");
+        var output = document.getElementById("term-output");
         if (output) output.innerHTML = "";
         return;
       case "snake":
@@ -425,57 +444,70 @@ import { FILE_SYSTEM, INITIAL_PATH } from "../../config/terminal-fs";
         }
         logToTerm("Starting Snake Protocol...");
         logToTerm('Controls: Arrow Keys | Exit: type "exit"');
-        const gameDiv = document.createElement("div");
-        document.getElementById("term-output").appendChild(gameDiv);
-
-        currentGame = new GameEngine(gameDiv, (score) => {
-          logToTerm(`>>> GAME OVER <<<`);
-          logToTerm(`FINAL SCORE: ${score}`);
+        var gameDiv = document.createElement("div");
+        var termOutput = document.getElementById("term-output");
+        if (termOutput) termOutput.appendChild(gameDiv);
+        currentGame = new GameEngine(gameDiv, function (score) {
+          logToTerm(">>> GAME OVER <<<");
+          logToTerm("FINAL SCORE: " + score);
           logToTerm('Type "snake" to replay, or "exit" to quit.');
           currentGame.stop();
           currentGame = null;
         });
         currentGame.start();
-        document.getElementById("term-input").blur();
+        var termInput = document.getElementById("term-input");
+        if (termInput) termInput.blur();
         return;
       case "whoami":
-        logToTerm(`USER: GUEST`);
+        logToTerm("USER: GUEST");
         return;
       case "music":
         togglePlay();
         return;
       case "theme":
-        document.getElementById("theme-btn")?.click();
+        var themeBtn = document.getElementById("theme-btn");
+        if (themeBtn) themeBtn.click();
         return;
     }
 
-    const currentDir = getCurrentDir();
+    var currentDir = getCurrentDir();
     if (!currentDir || currentDir.type !== "dir") return;
+
+    var i, files, file, link;
 
     switch (cmd) {
       case "ls":
       case "ll":
-        const files = Object.keys(currentDir.children).map((name) => {
-          const item = currentDir.children[name];
-          const color =
+        files = [];
+        for (var name in currentDir.children) {
+          if (!currentDir.children.hasOwnProperty(name)) continue;
+          var item = currentDir.children[name];
+          var colorClass =
             item.type === "dir"
               ? "text-dos-primary font-bold"
               : item.type === "exe"
                 ? "text-dos-alert"
                 : "text-dos-dim";
-          return `<span class="${color}">${name}</span>`;
-        });
+          files.push('<span class="' + colorClass + '">' + name + "</span>");
+        }
         logToTerm(files.join("  "));
         return;
       case "cd":
-        if (!param) currentPath = ["home", "guest"];
-        else if (param === "..") {
+        if (!param) {
+          currentPath = ["home", "guest"];
+        } else if (param === "..") {
           if (currentPath.length > 0) currentPath.pop();
-        } else if (param === "/") currentPath = [];
-        else {
-          if (currentDir.children[param]?.type === "dir")
+        } else if (param === "/") {
+          currentPath = [];
+        } else {
+          if (
+            currentDir.children[param] &&
+            currentDir.children[param].type === "dir"
+          ) {
             currentPath.push(param);
-          else logToTerm(`cd: ${param}: Not a directory`);
+          } else {
+            logToTerm("cd: " + param + ": Not a directory");
+          }
         }
         updatePrompt();
         return;
@@ -484,32 +516,40 @@ import { FILE_SYSTEM, INITIAL_PATH } from "../../config/terminal-fs";
           logToTerm("Usage: cat [file]");
           return;
         }
-        const file = currentDir.children[param];
-        if (file?.type === "file")
-          file.content.split("\n").forEach((l) => logToTerm(l));
-        else logToTerm("File not found or not text.");
+        file = currentDir.children[param];
+        if (file && file.type === "file") {
+          var lines = String(file.content).split("\n");
+          for (i = 0; i < lines.length; i++) logToTerm(lines[i]);
+        } else {
+          logToTerm("File not found or not text.");
+        }
         return;
       case "open":
         if (!param) {
           logToTerm("Usage: open [link]");
           return;
         }
-        const link = currentDir.children[param];
-        if (link?.type === "link") window.location.href = link.target;
-        else logToTerm("Link not found.");
+        link = currentDir.children[param];
+        if (link && link.type === "link") {
+          window.location.href = link.target;
+        } else {
+          logToTerm("Link not found.");
+        }
         return;
       default:
-        logToTerm(`Unknown command: ${cmd}`);
+        logToTerm("Unknown command: " + cmd);
     }
   }
 
-  // --- UI & Audio ---
-  const mobileToggle = document.getElementById("mobile-toggle");
-  const toolbar = document.getElementById("toolbar");
-  let isToolbarVisible = false;
-  mobileToggle?.addEventListener("click", () => {
-    isToolbarVisible = !isToolbarVisible;
-    if (toolbar) {
+  // --- 工具栏 / 音乐播放器 ---
+  var mobileToggle = document.getElementById("mobile-toggle");
+  var toolbar = document.getElementById("toolbar");
+  var isToolbarVisible = false;
+
+  if (mobileToggle) {
+    mobileToggle.addEventListener("click", function () {
+      isToolbarVisible = !isToolbarVisible;
+      if (!toolbar) return;
       if (isToolbarVisible) {
         toolbar.classList.remove("scale-0", "opacity-0");
         toolbar.classList.add("scale-100", "opacity-100");
@@ -519,31 +559,35 @@ import { FILE_SYSTEM, INITIAL_PATH } from "../../config/terminal-fs";
         toolbar.classList.add("scale-0", "opacity-0");
         mobileToggle.innerHTML = '<span class="text-2xl font-bold">≡</span>';
       }
-    }
-  });
+    });
+  }
 
-  const audio = document.getElementById("bg-music");
-  const playBtn = document.getElementById("play-btn");
-  const nextBtn = document.getElementById("next-btn");
-  const prevBtn = document.getElementById("prev-btn");
-  const songTitle = document.getElementById("song-title");
-  const trackIndex = document.getElementById("track-index");
-  const statusText = document.getElementById("status-text");
-  const visualizerBars = document.querySelectorAll("#visualizer .bar");
-  let currentTrack = 0;
-  let isPlaying = false;
-  let visualizerInterval;
+  var audio = document.getElementById("bg-music");
+  var playBtn = document.getElementById("play-btn");
+  var nextBtn = document.getElementById("next-btn");
+  var prevBtn = document.getElementById("prev-btn");
+  var songTitle = document.getElementById("song-title");
+  var trackIndex = document.getElementById("track-index");
+  var statusText = document.getElementById("status-text");
+  var visualizerBars = document.querySelectorAll("#visualizer .bar");
+  var currentTrack = 0;
+  var isPlaying = false;
+  var visualizerInterval = null;
 
   function loadTrack(index) {
-    if (!audio) return;
+    if (!audio || !playlist || playlist.length === 0) return;
     if (index < 0) index = playlist.length - 1;
     if (index >= playlist.length) index = 0;
     currentTrack = index;
     audio.src = playlist[currentTrack].url;
     audio.load();
-    if (songTitle) songTitle.innerText = `♪ ${playlist[currentTrack].name} ♪`;
-    if (trackIndex)
-      trackIndex.innerText = `TRACK ${String(currentTrack + 1).padStart(2, "0")}`;
+    if (songTitle)
+      songTitle.innerText = "♪ " + playlist[currentTrack].name + " ♪";
+    if (trackIndex) {
+      var num = String(currentTrack + 1);
+      if (num.length === 1) num = "0" + num;
+      trackIndex.innerText = "TRACK " + num;
+    }
   }
 
   function togglePlay() {
@@ -552,21 +596,22 @@ import { FILE_SYSTEM, INITIAL_PATH } from "../../config/terminal-fs";
       audio.pause();
       if (playBtn) playBtn.innerText = "▶";
       if (statusText) statusText.innerText = "PAUSED";
-      clearInterval(visualizerInterval);
+      if (visualizerInterval) clearInterval(visualizerInterval);
     } else {
       audio
         .play()
-        .then(() => {
+        .then(function () {
           if (playBtn) playBtn.innerText = "II";
           if (statusText) statusText.innerText = "PLAYING";
-          clearInterval(visualizerInterval);
-          visualizerInterval = setInterval(() => {
-            visualizerBars.forEach(
-              (b) => (b.style.height = `${Math.random() * 1.5 + 0.2}rem`)
-            );
+          if (visualizerInterval) clearInterval(visualizerInterval);
+          visualizerInterval = setInterval(function () {
+            visualizerBars.forEach(function (b) {
+              var bar = b;
+              bar.style.height = (Math.random() * 1.5 + 0.2).toFixed(2) + "rem";
+            });
           }, 150);
         })
-        .catch(() => {});
+        .catch(function () {});
     }
     isPlaying = !isPlaying;
   }
@@ -578,6 +623,7 @@ import { FILE_SYSTEM, INITIAL_PATH } from "../../config/terminal-fs";
       togglePlay();
     }
   }
+
   function prevTrack() {
     loadTrack(currentTrack - 1);
     if (isPlaying) {
@@ -586,103 +632,186 @@ import { FILE_SYSTEM, INITIAL_PATH } from "../../config/terminal-fs";
     }
   }
 
-  playBtn?.addEventListener("click", togglePlay);
-  nextBtn?.addEventListener("click", nextTrack);
-  prevBtn?.addEventListener("click", prevTrack);
-  audio?.addEventListener("ended", nextTrack);
+  if (playBtn) playBtn.addEventListener("click", togglePlay);
+  if (nextBtn) nextBtn.addEventListener("click", nextTrack);
+  if (prevBtn) prevBtn.addEventListener("click", prevTrack);
+  if (audio) audio.addEventListener("ended", nextTrack);
   loadTrack(0);
 
-  // --- Terminal UI ---
-  const termOverlay = document.getElementById("global-terminal");
-  const termWindow = document.getElementById("term-window");
-  const termInput = document.getElementById("term-input");
-  const termOutput = document.getElementById("term-output");
-  let isTermOpen = false;
+  // --- 主题切换逻辑 (多套 DOS 风格) ---
+  var THEMES = [
+    {
+      name: "NEON",
+      bg: "#050505",
+      primary: "#33ff00",
+      dim: "#005f00",
+      alert: "#ff3300",
+    },
+    {
+      name: "AMBER",
+      bg: "#040200",
+      primary: "#ffb000",
+      dim: "#663c00",
+      alert: "#ff3300",
+    },
+    {
+      name: "OCEAN",
+      bg: "#02060b",
+      primary: "#00e5ff",
+      dim: "#004466",
+      alert: "#ff3366",
+    },
+    {
+      name: "VIOLET",
+      bg: "#060011",
+      primary: "#c77dff",
+      dim: "#4b0082",
+      alert: "#ff4081",
+    },
+  ];
+
+  var themeIndex = 0;
+
+  function applyTheme(theme) {
+    var root = document.documentElement;
+    root.style.setProperty("--color-dos-bg", theme.bg);
+    root.style.setProperty("--color-dos-primary", theme.primary);
+    root.style.setProperty("--color-dos-dim", theme.dim);
+    root.style.setProperty("--color-dos-alert", theme.alert);
+
+    var btn = document.getElementById("theme-btn");
+    if (btn) {
+      btn.textContent = "[ THEME : " + theme.name + " ]";
+    }
+  }
+
+  function loadThemeFromStorage() {
+    try {
+      var saved = window.localStorage.getItem("vast-theme-index");
+      if (saved != null) {
+        var idx = parseInt(saved, 10);
+        if (idx >= 0 && idx < THEMES.length) {
+          themeIndex = idx;
+        }
+      }
+    } catch (e) {}
+    applyTheme(THEMES[themeIndex]);
+  }
+
+  function nextTheme() {
+    themeIndex = (themeIndex + 1) % THEMES.length;
+    applyTheme(THEMES[themeIndex]);
+    try {
+      window.localStorage.setItem("vast-theme-index", String(themeIndex));
+    } catch (e) {}
+  }
+
+  loadThemeFromStorage();
+
+  var themeBtn = document.getElementById("theme-btn");
+  if (themeBtn) {
+    themeBtn.addEventListener("click", nextTheme);
+  }
+
+  // --- 终端 UI ---
+  var termOverlay = document.getElementById("global-terminal");
+  var termWindow = document.getElementById("term-window");
+  var termInput = document.getElementById("term-input");
+  var isTermOpen = false;
 
   function toggleTerm() {
-    if (!termOverlay) return;
+    if (!termOverlay || !termWindow) return;
     isTermOpen = !isTermOpen;
     if (isTermOpen) {
       termOverlay.classList.remove("hidden", "opacity-0");
       termOverlay.classList.add("flex");
       termWindow.classList.remove("scale-95");
       termWindow.classList.add("scale-100");
-      setTimeout(() => termInput?.focus(), 100);
+      setTimeout(function () {
+        if (termInput) termInput.focus();
+      }, 100);
       updatePrompt();
     } else {
       termOverlay.classList.add("opacity-0");
       termWindow.classList.remove("scale-100");
       termWindow.classList.add("scale-95");
-      setTimeout(() => {
+      setTimeout(function () {
         termOverlay.classList.add("hidden");
         termOverlay.classList.remove("flex");
       }, 300);
     }
   }
 
-  function logToTerm(text, isCmd = false) {
-    if (termOutput) {
-      const div = document.createElement("div");
-      if (isCmd)
-        div.innerHTML = `<span class="text-white opacity-50">[USER] > ${text}</span>`;
-      else div.innerHTML = text;
-      termOutput.appendChild(div);
-      termOutput.scrollTop = termOutput.scrollHeight;
-    }
+  var termBtn = document.getElementById("term-btn");
+  var closeTermBtn = document.getElementById("close-term");
+  if (termBtn) termBtn.addEventListener("click", toggleTerm);
+  if (closeTermBtn) closeTermBtn.addEventListener("click", toggleTerm);
+
+  if (termInput) {
+    termInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        var val = termInput.value.trim();
+        logToTerm(val, true);
+        termInput.value = "";
+        execCommand(val);
+      }
+    });
   }
 
-  document.addEventListener("keydown", (e) => {
+  document.addEventListener("keydown", function (e) {
     if ((e.ctrlKey && e.key === "k") || e.key === "`") {
       e.preventDefault();
       toggleTerm();
     }
     if (e.key === "Escape" && isTermOpen) toggleTerm();
   });
-  document.getElementById("term-btn")?.addEventListener("click", toggleTerm);
-  document.getElementById("close-term")?.addEventListener("click", toggleTerm);
 
-  termInput?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      const val = termInput.value.trim();
-      logToTerm(val, true);
-      termInput.value = "";
-      execCommand(val);
-    }
-  });
+  // --- 背景进程 & 网络日志 ---
+  var procList = document.getElementById("proc-list");
+  var netLog = document.getElementById("net-log");
+  var SYSTEM_CMDS = ["systemd", "kworker", "node", "astro", "docker", "python"];
 
-  // Background FX
-  const procList = document.getElementById("proc-list");
-  const netLog = document.getElementById("net-log");
-  const SYSTEM_CMDS = [
-    "systemd",
-    "kworker",
-    "node",
-    "astro",
-    "docker",
-    "python",
-  ];
-  const rndHex = () =>
-    `0x${Math.floor(Math.random() * 65535)
-      .toString(16)
-      .toUpperCase()}`;
+  function rndHex() {
+    return (
+      "0x" +
+      Math.floor(Math.random() * 65535)
+        .toString(16)
+        .toUpperCase()
+    );
+  }
 
   if (procList) {
-    setInterval(() => {
-      const line = document.createElement("div");
-      line.className = `flex gap-2 whitespace-nowrap opacity-60`;
-      line.innerHTML = `<span class="w-8 text-dos-dim">${Math.floor(Math.random() * 9999)}</span><span class="w-10 text-dos-dim">${rndHex()}</span><span class="flex-1 truncate">${SYSTEM_CMDS[Math.floor(Math.random() * SYSTEM_CMDS.length)]}</span>`;
+    setInterval(function () {
+      var line = document.createElement("div");
+      line.className = "flex gap-2 whitespace-nowrap opacity-60";
+      line.innerHTML =
+        '<span class="w-8 text-dos-dim">' +
+        Math.floor(Math.random() * 9999) +
+        '</span><span class="w-10 text-dos-dim">' +
+        rndHex() +
+        '</span><span class="flex-1 truncate">' +
+        SYSTEM_CMDS[Math.floor(Math.random() * SYSTEM_CMDS.length)] +
+        "</span>";
       procList.appendChild(line);
-      if (procList.children.length > 25)
+      if (procList.children.length > 25) {
         procList.removeChild(procList.children[0]);
+      }
     }, 400);
   }
+
   if (netLog) {
-    setInterval(() => {
-      const line = document.createElement("div");
-      line.className = `flex justify-end gap-2 w-full whitespace-nowrap opacity-60`;
-      line.innerHTML = `<span>192.168.1.${Math.floor(Math.random() * 255)}</span><span class="text-dos-dim">ESTABLISHED</span>`;
+    setInterval(function () {
+      var line = document.createElement("div");
+      line.className =
+        "flex justify-end gap-2 w-full whitespace-nowrap opacity-60";
+      line.innerHTML =
+        "<span>192.168.1." +
+        Math.floor(Math.random() * 255) +
+        '</span><span class="text-dos-dim">ESTABLISHED</span>';
       netLog.appendChild(line);
-      if (netLog.children.length > 25) netLog.removeChild(netLog.children[0]);
+      if (netLog.children.length > 25) {
+        netLog.removeChild(netLog.children[0]);
+      }
     }, 300);
   }
 </script>
